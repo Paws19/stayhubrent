@@ -160,6 +160,11 @@
             transition: .2s var(--ease);
         }
 
+        .btn-primary a {
+            color: inherit;
+            text-decoration: none;
+        }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 28px var(--glow);
@@ -1112,7 +1117,7 @@
                 <span class="theme-icon" id="themeIcon">🌙</span>
             </button>
             <button class="btn-ghost">Log In</button>
-            <button class="btn-primary">Get Started</button>
+            <button class="btn-primary"><a href="{{ route('get-started') }}">Get Started</a></button>
         </div>
     </nav>
 
@@ -1349,7 +1354,8 @@
                             <li>Basic payment tracking</li>
                             <li>Tenant reservation</li>
                         </ul>
-                        <button class="btn-outline-lg" style="width:100%">Get Started</button>
+                        <button class="btn-outline-lg" style="width:100%"><a href="{{ route('get-started') }}"
+                                style="color: inherit; text-decoration: none;">Get Started</a></button>
                     </div>
                     <div class="price-card popular">
                         <div class="popular-badge">POPULAR</div>
@@ -1428,10 +1434,11 @@
             <h2>Your smarter boarding<br />house starts here.</h2>
             <p>Join thousands of landlords managing their properties with ease.</p>
             <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
-                <button class="btn-lg">Create Free Account →</button>
+                <button class="btn-lg"><a href="{{ route('get-started') }}"
+                        style="color: inherit; text-decoration: none;">Create Free Account →</a></button>
                 <button class="btn-outline-lg">View All Features</button>
             </div>
-        </div>
+        </div>4
     </section>
 
     <!-- FOOTER -->
