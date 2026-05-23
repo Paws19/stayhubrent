@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
+use App\Mail\SendOTP as SendOTPMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 
 class AccountController extends Controller
 {
@@ -18,9 +21,9 @@ class AccountController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+       
     }
 
     /**
@@ -28,7 +31,23 @@ class AccountController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'verification_code' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:accounts,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $account = Account::create([
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'verification_token' => $request->verification_code,
+        ]);
+
+        Mail::to($account->email)->send(new SendOTPMail($request->verification_code));
+
+        return redirect()
+            ->route('index')
+            ->with('success', 'Account created successfully.');
     }
 
     /**
