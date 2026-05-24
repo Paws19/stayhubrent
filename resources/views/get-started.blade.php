@@ -109,55 +109,85 @@
                         </div>
 
                         <div class="field-group">
-                            <div class="field-row">
+                            <form method="POST" action="{{ route('register.store') }}">
+                                @csrf
+
+                                <div class="field-row">
+                                    <div class="field">
+                                        <label>First Name <span>*</span></label>
+                                        <input type="text" placeholder="Juan" name="first_name" id="firstName" />
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Last Name <span>*</span></label>
+                                        <input type="text" placeholder="dela Cruz" name="last_name" id="lastName" />
+                                    </div>
+                                </div>
+
                                 <div class="field">
-                                    <label>First Name <span>*</span></label>
-                                    <input type="text" placeholder="Juan" name="first_name" id="firstName" />
+                                    <label>Email Address <span>*</span></label>
+                                    <input type="email" placeholder="juan@email.com" name="email"
+                                        id="emailInput" />
                                 </div>
+
                                 <div class="field">
-                                    <label>Last Name <span>*</span></label>
-                                    <input type="text" placeholder="dela Cruz" name="last_name" id="lastName" />
+                                    <label>Phone Number <span>*</span></label>
+                                    <input type="tel" placeholder="+63 9XX XXX XXXX" name="phone_number"
+                                        id="phoneInput" />
                                 </div>
-                            </div>
-                            <div class="field">
-                                <label>Email Address <span>*</span></label>
-                                <input type="email" placeholder="juan@email.com" name="email" id="emailInput" />
-                            </div>
-                            <div class="field">
-                                <label>Phone Number <span>*</span></label>
-                                <input type="tel" placeholder="+63 9XX XXX XXXX" name="phone"
-                                    id="phoneInput" />
-                            </div>
-                            <div class="field">
-                                <label>Password <span>*</span></label>
-                                <div class="pw-wrap">
-                                    <input type="password" placeholder="Min. 8 characters" name="password"
-                                        id="pwInput" oninput="checkStrength()" />
-                                    <button class="pw-eye" onclick="togglePw('pwInput',this)"
-                                        type="button">👁</button>
+
+                                <div class="field">
+                                    <label>Password <span>*</span></label>
+
+                                    <div class="pw-wrap">
+                                        <input type="password" placeholder="Min. 8 characters" name="password"
+                                            id="pwInput" oninput="checkStrength()" />
+
+                                        <button class="pw-eye" onclick="togglePw('pwInput',this)" type="button">
+                                            👁
+                                        </button>
+                                    </div>
+
+                                    <div class="strength-bar">
+                                        <div class="strength-seg" id="seg1"></div>
+                                        <div class="strength-seg" id="seg2"></div>
+                                        <div class="strength-seg" id="seg3"></div>
+                                        <div class="strength-seg" id="seg4"></div>
+                                    </div>
+
+                                    <p class="field-hint" id="strengthLabel">
+                                        Enter a password
+                                    </p>
                                 </div>
-                                <div class="strength-bar">
-                                    <div class="strength-seg" id="seg1"></div>
-                                    <div class="strength-seg" id="seg2"></div>
-                                    <div class="strength-seg" id="seg3"></div>
-                                    <div class="strength-seg" id="seg4"></div>
+
+                                <div class="field">
+                                    <label>Confirm Password <span>*</span></label>
+
+                                    <div class="pw-wrap">
+                                        <input type="password" placeholder="Re-enter password"
+                                            name="password_confirmation" id="pw2Input" />
+
+                                        <button class="pw-eye" onclick="togglePw('pw2Input',this)" type="button">
+                                            👁
+                                        </button>
+                                    </div>
                                 </div>
-                                <p class="field-hint" id="strengthLabel">Enter a password</p>
-                            </div>
-                            <div class="field">
-                                <label>Confirm Password <span>*</span></label>
-                                <div class="pw-wrap">
-                                    <input type="password" placeholder="Re-enter password" name="confirm_password"
-                                        id="pw2Input" />
-                                    <button class="pw-eye" onclick="togglePw('pw2Input',this)"
-                                        type="button">👁</button>
-                                </div>
-                            </div>
-                            <label class="check-field">
-                                <input type="checkbox" name="terms" id="termsCheck" />
-                                <span>I agree to the <a href="#">Terms of Service</a> and <a
-                                        href="#">Privacy Policy</a></span>
-                            </label>
+
+                                <label class="check-field">
+                                    <input type="checkbox" name="terms" id="termsCheck" />
+
+                                    <span>
+                                        I agree to the
+                                        <a href="#">Terms of Service</a>
+                                        and
+                                        <a href="#">Privacy Policy</a>
+                                    </span>
+                                </label>
+
+                                <button type="submit">
+                                    Register
+                                </button>
+                            </form>
                         </div>
 
                         <button class="btn-back" onclick="goStep(1)">← Back</button>

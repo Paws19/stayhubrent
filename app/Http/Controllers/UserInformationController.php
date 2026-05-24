@@ -28,7 +28,28 @@ class UserInformationController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        
+        $request->validate([
+            'account_id' => 'required|integer|exists:accounts,id',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+           
+        ]);
+
+        UserInformation::create([
+            'account_id' => $request->account_id,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'phone_number' => $request->phone_number,
+           
+        ]);
+
+        return redirect()
+            ->route('index')
+            ->with('success', 'User information created successfully.');
+
+
     }
 
     /**

@@ -13,7 +13,7 @@ class UserInformation extends Model
         'first_name',
         'last_name',
         'phone_number',
-        'address',
+
     ];
 
     protected $hidden = [

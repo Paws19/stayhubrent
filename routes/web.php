@@ -10,3 +10,6 @@ Route::get('/', function () {
 Route::get('/get-started', function () {
     return view('get-started');
 })->name('get-started');
+
+Route::post('/register', [App\Http\Controllers\RegisterController::class, 'store'])
+    ->name('register.store');

@@ -32,18 +32,19 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'verification_code' => 'required|string|max:255',
+          
             'email' => 'required|string|email|max:255|unique:accounts,email',
             'password' => 'required|string|min:8|confirmed',
+            
         ]);
 
-        $account = Account::create([
+        Account::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'verification_token' => $request->verification_code,
+           
         ]);
 
-        Mail::to($account->email)->send(new SendOTPMail($request->verification_code));
+      
 
         return redirect()
             ->route('index')
