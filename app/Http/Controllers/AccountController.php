@@ -47,7 +47,6 @@ class AccountController extends Controller
       
 
         return redirect()
-            ->route('index')
             ->with('success', 'Account created successfully.');
     }
 

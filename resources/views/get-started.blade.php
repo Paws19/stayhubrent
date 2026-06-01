@@ -108,6 +108,19 @@
                             <p id="s2sub">Set up your login credentials</p>
                         </div>
 
+                        <!---- Success or error message --->
+                        @if (session('success'))
+                            <div class="alert alert-success">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+                        @if (session('error'))
+                            <div class="alert alert-danger">
+                                {{ session('error') }}
+                            </div>
+                        @endif
+
                         <div class="field-group">
                             <form method="POST" action="{{ route('register.store') }}">
                                 @csrf
@@ -120,7 +133,8 @@
 
                                     <div class="field">
                                         <label>Last Name <span>*</span></label>
-                                        <input type="text" placeholder="dela Cruz" name="last_name" id="lastName" />
+                                        <input type="text" placeholder="dela Cruz" name="last_name"
+                                            id="lastName" />
                                     </div>
                                 </div>
 
@@ -184,14 +198,14 @@
                                     </span>
                                 </label>
 
-                                <button type="submit">
-                                    Register
+                                <button class="btn-back" type="button" onclick="goStep(1)">← Back</button>
+                                <button type="submit" class="btn-full">
+                                    Continue →
                                 </button>
                             </form>
                         </div>
 
-                        <button class="btn-back" onclick="goStep(1)">← Back</button>
-                        <button class="btn-full" onclick="goStep(3)">Continue →</button>
+
                         <p class="signin-link" style="margin-top:.8rem;">Already have an account? <a
                                 href="#">Sign in</a></p>
                     </div>
@@ -401,7 +415,31 @@
             </div><!-- /form-card -->
         </div><!-- /form-panel -->
     </div><!-- /page -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
+            @if (session('step') == 3)
+
+                // Check selected role
+                const role = document.getElementById('roleInput')?.value;
+
+                if (role === 'landlord') {
+                    document.querySelectorAll('.step-slide').forEach(el => {
+                        el.classList.remove('active');
+                    });
+
+                    document.getElementById('step3landlord').classList.add('active');
+                } else {
+                    document.querySelectorAll('.step-slide').forEach(el => {
+                        el.classList.remove('active');
+                    });
+
+                    document.getElementById('step3tenant').classList.add('active');
+                }
+            @endif
+
+        });
+    </script>
     <script>
         /* ── STATE ── */
         let currentStep = 1;

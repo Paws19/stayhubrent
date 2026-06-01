@@ -37,18 +37,24 @@ class UserInformationController extends Controller
            
         ]);
 
-        UserInformation::create([
+        $userInformation = UserInformation::create([
             'account_id' => $request->account_id,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'phone_number' => $request->phone_number,
            
         ]);
+if ($userInformation) {
+    return redirect()
+        ->back()
+        ->with('success', 'User information created successfully.')
+        ->with('step', 3);
+}
 
-        return redirect()
-            ->route('index')
-            ->with('success', 'User information created successfully.');
-
+return redirect()
+    ->back()
+    ->with('error', 'Failed to create user information. Please try again.');
+            
 
     }
 
