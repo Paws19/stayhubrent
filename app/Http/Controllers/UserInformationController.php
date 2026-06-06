@@ -45,10 +45,9 @@ class UserInformationController extends Controller
            
         ]);
 if ($userInformation) {
-    return redirect()
-        ->back()
-        ->with('success', 'User information created successfully.')
-        ->with('step', 3);
+   return redirect()->back()
+    ->with('success', 'Account created successfully.')
+    ->with('step', 3);
 }
 
 return redirect()

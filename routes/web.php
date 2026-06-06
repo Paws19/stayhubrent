@@ -13,3 +13,9 @@ Route::get('/get-started', function () {
 
 Route::post('/register', [App\Http\Controllers\RegisterController::class, 'store'])
     ->name('register.store');
+
+Route::post('/role', [App\Http\Controllers\AccountController::class, 'store'])
+    ->name('role.store');
+
+Route::post('/landlord-details', [App\Http\Controllers\LandlordDetailController::class, 'store'])
+    ->name('landlord-details.store');

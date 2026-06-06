@@ -14,7 +14,7 @@ class RegisterController extends Controller
         $request->validate([
             'email' => 'required|string|email|max:255|unique:accounts,email',
             'password' => 'required|string|min:8|confirmed',
-
+            'role' => 'required|in:landlord,tenant',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
@@ -24,6 +24,7 @@ class RegisterController extends Controller
         $account = Account::create([
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role,
         ]);
 
         // Create user information
@@ -34,8 +35,11 @@ class RegisterController extends Controller
             'phone_number' => $request->phone_number,
         ]);
 
-        return redirect()
-            ->route('index')
-            ->with('success', 'Account created successfully.');
+    
+      return redirect()->back()
+    ->withInput()
+    ->with('success', 'Account created successfully.')
+    ->with('step', 3)
+    ->with('selected_role', $request->role);
     }
 }

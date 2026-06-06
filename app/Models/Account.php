@@ -12,6 +12,7 @@ class Account extends Model
         'email',
         'email_verified_at',
         'verification_token',
+        'role',
         'password',
     ];
 

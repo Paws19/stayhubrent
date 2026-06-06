@@ -29,26 +29,16 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-          
-            'email' => 'required|string|email|max:255|unique:accounts,email',
-            'password' => 'required|string|min:8|confirmed',
-            
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'role' => 'required|in:landlord,tenant',
+    ]);
 
-        Account::create([
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-           
-        ]);
-
-      
-
-        return redirect()
-            ->with('success', 'Account created successfully.');
-    }
+    return redirect()->back()
+        ->with('step', 2)
+        ->with('selected_role', $request->role);
+}
 
     /**
      * Display the specified resource.

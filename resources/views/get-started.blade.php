@@ -71,32 +71,36 @@
                             <h1>Choose your role</h1>
                             <p>How will you be using StayHubRent?</p>
                         </div>
+                        <form method="POST" action="{{ route('role.store') }}">
+                            @csrf
 
-                        <div class="role-picker">
-                            <label class="role-option" id="roleLandlord" onclick="selectRole('landlord')">
-                                <input type="radio" name="role" value="landlord" />
-                                <div class="role-check">✓</div>
-                                <span class="role-emoji">🏡</span>
-                                <h3>Landlord</h3>
-                                <p>I own or manage a boarding house / apartment</p>
-                            </label>
-                            <label class="role-option" id="roleTenant" onclick="selectRole('tenant')">
-                                <input type="radio" name="role" value="tenant" />
-                                <div class="role-check">✓</div>
-                                <span class="role-emoji">🙋</span>
-                                <h3>Tenant</h3>
-                                <p>I'm looking for a room or bed space to rent</p>
-                            </label>
-                        </div>
+                            <div class="role-picker">
+                                <label class="role-option" id="roleLandlord" onclick="selectRole('landlord')">
+                                    <input type="radio" name="role" value="landlord" />
+                                    <div class="role-check">✓</div>
+                                    <span class="role-emoji">🏡</span>
+                                    <h3>Landlord</h3>
+                                    <p>I own or manage a boarding house / apartment</p>
+                                </label>
+                                <label class="role-option" id="roleTenant" onclick="selectRole('tenant')">
+                                    <input type="radio" name="role" value="tenant" />
+                                    <div class="role-check">✓</div>
+                                    <span class="role-emoji">🙋</span>
+                                    <h3>Tenant</h3>
+                                    <p>I'm looking for a room or bed space to rent</p>
+                                </label>
+                            </div>
+                            <!-- Dynamic role info -->
+                            <div id="roleInfo"
+                                style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.5rem;display:none;font-size:.85rem;color:var(--sub);line-height:1.6;">
+                            </div>
 
-                        <!-- Dynamic role info -->
-                        <div id="roleInfo"
-                            style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.5rem;display:none;font-size:.85rem;color:var(--sub);line-height:1.6;">
-                        </div>
+                            <button type="submit" class="btn-full" id="btnStep1" disabled>
+                                Continue <span>→</span>
+                            </button>
+                        </form>
 
-                        <button class="btn-full" onclick="goStep(2)" id="btnStep1" disabled>
-                            Continue <span>→</span>
-                        </button>
+
 
                         <p class="signin-link">Already have an account? <a href="#">Sign in</a></p>
                     </div>
@@ -125,29 +129,32 @@
                             <form method="POST" action="{{ route('register.store') }}">
                                 @csrf
 
+                                <input type="hidden" name="role" id="roleInput"
+                                    value="{{ session('selected_role') }}">
                                 <div class="field-row">
                                     <div class="field">
                                         <label>First Name <span>*</span></label>
-                                        <input type="text" placeholder="Juan" name="first_name" id="firstName" />
+                                        <input type="text" placeholder="Juan" name="first_name"
+                                            value="{{ old('first_name') }}" id="firstName" />
                                     </div>
 
                                     <div class="field">
                                         <label>Last Name <span>*</span></label>
                                         <input type="text" placeholder="dela Cruz" name="last_name"
-                                            id="lastName" />
+                                            value="{{ old('last_name') }}" id="lastName" />
                                     </div>
                                 </div>
 
                                 <div class="field">
                                     <label>Email Address <span>*</span></label>
                                     <input type="email" placeholder="juan@email.com" name="email"
-                                        id="emailInput" />
+                                        value="{{ old('email') }}" id="emailInput" />
                                 </div>
 
                                 <div class="field">
                                     <label>Phone Number <span>*</span></label>
                                     <input type="tel" placeholder="+63 9XX XXX XXXX" name="phone_number"
-                                        id="phoneInput" />
+                                        value="{{ old('phone_number') }}" id="phoneInput" />
                                 </div>
 
                                 <div class="field">
@@ -198,11 +205,12 @@
                                     </span>
                                 </label>
 
-                                <button class="btn-back" type="button" onclick="goStep(1)">← Back</button>
+
                                 <button type="submit" class="btn-full">
                                     Continue →
                                 </button>
                             </form>
+                            <button class="btn-back" type="button" onclick="goStep(1)">← Back</button>
                         </div>
 
 
@@ -226,70 +234,128 @@
                             </div>
                         </div>
 
-                        <div class="field-group">
-                            <div class="field">
-                                <label>Property Name <span>*</span></label>
-                                <input type="text" placeholder="e.g. Sunshine Dormitory" />
-                            </div>
-                            <div class="field">
-                                <label>Property Type <span>*</span></label>
-                                <select>
-                                    <option value="">Select type...</option>
-                                    <option>Boarding House</option>
-                                    <option>Apartment</option>
-                                    <option>Dormitory</option>
-                                    <option>Bed Space</option>
-                                    <option>Studio Unit</option>
-                                </select>
-                            </div>
-                            <div class="field-row">
+                        <form method="POST" action="{{ route('landlord-details.store') }}">
+                            @csrf
+                            @if ($errors->any())
+                                <div style="background:red;color:white;padding:10px;">
+                                    <ul>
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <div class="field-group">
                                 <div class="field">
-                                    <label>Number of Floors</label>
-                                    <input type="number" placeholder="e.g. 3" min="1" />
+                                    <label>Property Name <span>*</span></label>
+                                    <input type="text" name="property_name"
+                                        placeholder="e.g. Sunshine Dormitory" />
                                 </div>
                                 <div class="field">
-                                    <label>Number of Rooms <span>*</span></label>
-                                    <input type="number" placeholder="e.g. 10" min="1" />
+                                    <label>Property Type <span>*</span></label>
+                                    <select name="property_type">
+                                        <option value="">Select type...</option>
+                                        <option>Boarding House</option>
+                                        <option>Apartment</option>
+                                        <option>Dormitory</option>
+                                        <option>Bed Space</option>
+                                        <option>Studio Unit</option>
+                                    </select>
                                 </div>
-                            </div>
-                            <div class="field-row">
+                                <div class="field-row">
+                                    <div class="field">
+                                        <label>Number of Floors</label>
+                                        <input type="number" name="number_of_floors" placeholder="e.g. 3"
+                                            min="1" />
+                                    </div>
+                                    <div class="field">
+                                        <label>Number of Rooms <span>*</span></label>
+                                        <input type="number" name="number_of_rooms" placeholder="e.g. 10"
+                                            min="1" />
+                                    </div>
+                                </div>
+                                <div class="field-row">
+                                    <div class="field">
+                                        <label>Beds per Room <span>*</span></label>
+                                        <input type="number" name="bed_per_room" placeholder="e.g. 4"
+                                            min="1" />
+                                    </div>
+                                    <div class="field">
+                                        <label>Monthly Rent (₱) <span>*</span></label>
+                                        <input type="number" name="monthly_rent" placeholder="e.g. 3500" />
+                                    </div>
+                                </div>
                                 <div class="field">
-                                    <label>Beds per Room <span>*</span></label>
-                                    <input type="number" placeholder="e.g. 4" min="1" />
+                                    <label>Full Address <span>*</span></label>
+                                    <input type="text" name="full_address" placeholder="Street, Barangay, City" />
                                 </div>
                                 <div class="field">
-                                    <label>Monthly Rent (₱) <span>*</span></label>
-                                    <input type="number" placeholder="e.g. 3500" />
+                                    <label>Amenities</label>
+                                    <p class="field-hint" style="margin-bottom:.4rem;">Select all that apply</p>
+                                    <div class="amenity-grid">
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="WiFi">
+                                            📶 WiFi
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Aircon">
+                                            ❄️ Aircon
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Electric Fan">
+                                            🌀 Electric Fan
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Private CR">
+                                            🚿 Private CR
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Shared CR">
+                                            🚿 Shared CR
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Kitchen">
+                                            🍳 Kitchen
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Laundry Area">
+                                            🧺 Laundry Area
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="TV">
+                                            📺 TV
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="CCTV">
+                                            🔐 CCTV
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox" name="amenities[]" value="Parking">
+                                            🚗 Parking
+                                        </label>
+
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label>Description / House Rules</label>
+                                    <textarea name="house_rules" placeholder="e.g. No smoking, visitors until 9pm only, quiet hours after 10pm..."></textarea>
                                 </div>
                             </div>
-                            <div class="field">
-                                <label>Full Address <span>*</span></label>
-                                <input type="text" placeholder="Street, Barangay, City" />
-                            </div>
-                            <div class="field">
-                                <label>Amenities</label>
-                                <p class="field-hint" style="margin-bottom:.4rem;">Select all that apply</p>
-                                <div class="amenity-grid">
-                                    <span class="amenity-pill" onclick="togglePill(this)">📶 WiFi</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">❄️ Aircon</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🌀 Electric Fan</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🚿 Private CR</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🚿 Shared CR</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🍳 Kitchen</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🧺 Laundry Area</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">📺 TV</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🔐 CCTV</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🚗 Parking</span>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label>Description / House Rules</label>
-                                <textarea placeholder="e.g. No smoking, visitors until 9pm only, quiet hours after 10pm..."></textarea>
-                            </div>
-                        </div>
+
+                            <button class="btn-full" type="submit">Continue →</button>
+                        </form>
 
                         <button class="btn-back" onclick="goStep(2)">← Back</button>
-                        <button class="btn-full" onclick="goStep(4)">Continue →</button>
                     </div>
 
                     <!-- TENANT DETAILS -->
@@ -415,35 +481,13 @@
             </div><!-- /form-card -->
         </div><!-- /form-panel -->
     </div><!-- /page -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
 
-            @if (session('step') == 3)
-
-                // Check selected role
-                const role = document.getElementById('roleInput')?.value;
-
-                if (role === 'landlord') {
-                    document.querySelectorAll('.step-slide').forEach(el => {
-                        el.classList.remove('active');
-                    });
-
-                    document.getElementById('step3landlord').classList.add('active');
-                } else {
-                    document.querySelectorAll('.step-slide').forEach(el => {
-                        el.classList.remove('active');
-                    });
-
-                    document.getElementById('step3tenant').classList.add('active');
-                }
-            @endif
-
-        });
-    </script>
     <script>
         /* ── STATE ── */
         let currentStep = 1;
-        let selectedRole = null;
+
+        let selectedRole =
+            "{{ session('selected_role') ?? (old('role') ?? '') }}";
 
         const roleInfo = {
             landlord: `🏡 <strong>As a Landlord</strong>, you'll be able to create properties, add rooms and beds, set monthly rent, approve tenant reservations, and track all payments in one dashboard.`,
@@ -474,18 +518,32 @@
 
         /* ── ROLE SELECT ── */
         function selectRole(role) {
+
             selectedRole = role;
-            document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
-            document.getElementById('role' + role.charAt(0).toUpperCase() + role.slice(1)).classList.add('selected');
+
+            document.getElementById('roleInput').value = role;
+
+            document.querySelectorAll('.role-option')
+                .forEach(el => el.classList.remove('selected'));
+
+            document.getElementById(
+                'role' + role.charAt(0).toUpperCase() + role.slice(1)
+            ).classList.add('selected');
 
             const info = document.getElementById('roleInfo');
+
             info.innerHTML = roleInfo[role];
             info.style.display = 'block';
+
             document.getElementById('btnStep1').disabled = false;
 
-            // Update step 2 title
-            document.getElementById('s2title').textContent = role === 'landlord' ? 'Landlord Account' : 'Tenant Account';
-            document.getElementById('s2sub').textContent = role === 'landlord' ?
+            document.getElementById('s2title').textContent =
+                role === 'landlord' ?
+                'Landlord Account' :
+                'Tenant Account';
+
+            document.getElementById('s2sub').textContent =
+                role === 'landlord' ?
                 'Set up your landlord login credentials' :
                 'Set up your tenant login credentials';
         }
@@ -642,6 +700,16 @@
         function goDashboard() {
             alert('Redirecting to dashboard... (Connect to your backend here)');
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            console.log('Role from session:', selectedRole);
+
+            @if (session('step'))
+                goStep({{ session('step') }});
+            @endif
+
+        });
     </script>
 </body>
 
