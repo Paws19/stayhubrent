@@ -27,7 +27,7 @@ class LandlordDetailController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{  
+{
     $request->validate([
         'account_id' => 'required|integer|exists:accounts,id',
 
@@ -72,11 +72,28 @@ class LandlordDetailController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LandlordDetail $landlordDetail)
-    {
-        //
+public function show()
+{
+    $accountId = session('account_id');
+
+    $landlordDetail = LandlordDetail::where('account_id', $accountId)->first();
+
+    if ($landlordDetail) {
+        try {
+            $landlordDetail->property_name = decrypt($landlordDetail->property_name);
+        } catch (\Exception $e) {
+            // already plain text
+        }
+
+        try {
+            $landlordDetail->full_address = decrypt($landlordDetail->full_address);
+        } catch (\Exception $e) {
+            // already plain text
+        }
     }
 
+    return view('get-started', compact('landlordDetail'));
+}
     /**
      * Show the form for editing the specified resource.
      */

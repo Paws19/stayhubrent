@@ -704,6 +704,26 @@
             color: var(--muted);
         }
 
+        .btn-login {
+            display: inline-block;
+            padding: 10px 24px;
+            background: #D4AF37;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid #D4AF37;
+        }
+
+        .btn-login:hover {
+            background: #B8962E;
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
         .mock-badge {
             font-size: .7rem;
             font-weight: 600;
@@ -1116,7 +1136,9 @@
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
                 <span class="theme-icon" id="themeIcon">🌙</span>
             </button>
-            <button class="btn-ghost">Log In</button>
+            <a href="{{ route('login') }}" class="btn-login">
+                Log In
+            </a>
             <button class="btn-primary"><a href="{{ route('get-started') }}">Get Started</a></button>
         </div>
     </nav>
@@ -1129,7 +1151,7 @@
             <div class="orb orb3"></div>
         </div>
 
-        <div class="float-badge fb1"><span class="fi">🏠</span> 3 new properties listed</div>
+        <div class="float-badge fb1"><span class="fi">🏠</span> 0 new property listed</div>
         <div class="float-badge fb2"><span class="fi">✅</span> Reservation approved!</div>
 
         <div class="hero-badge"><span></span>The smarter way to manage rentals</div>
@@ -1159,18 +1181,7 @@
             </div>
             <div class="roles-grid reveal">
 
-                <div class="role-card" style="--accent-card:#6c9aff">
-                    <div class="role-icon">🛡️</div>
-                    <h3>Super Admin</h3>
-                    <p style="font-size:.88rem;color:var(--muted);margin-bottom:1rem;">Controls the entire platform with
-                        full visibility.</p>
-                    <ul>
-                        <li>Verify landlords</li>
-                        <li>Manage & suspend users</li>
-                        <li>Analytics dashboard</li>
-                        <li>Manage reports</li>
-                    </ul>
-                </div>
+
 
                 <div class="role-card" style="--accent-card:#5effd3">
                     <div class="role-icon">🏡</div>

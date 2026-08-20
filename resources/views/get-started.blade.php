@@ -236,6 +236,7 @@
 
                         <form method="POST" action="{{ route('landlord-details.store') }}">
                             @csrf
+                            <input type="hidden" name="account_id" value="{{ session('account_id') }}" />
                             @if ($errors->any())
                                 <div style="background:red;color:white;padding:10px;">
                                     <ul>
@@ -255,11 +256,11 @@
                                     <label>Property Type <span>*</span></label>
                                     <select name="property_type">
                                         <option value="">Select type...</option>
-                                        <option>Boarding House</option>
-                                        <option>Apartment</option>
-                                        <option>Dormitory</option>
-                                        <option>Bed Space</option>
-                                        <option>Studio Unit</option>
+                                        <option value="boarding_house">Boarding House</option>
+                                        <option value="apartment">Apartment</option>
+                                        <option value="dormitory">Dormitory</option>
+                                        <option value="bedspace">Bed Space</option>
+                                        <option value="studio_unit">Studio Unit</option>
                                     </select>
                                 </div>
                                 <div class="field-row">
@@ -305,17 +306,17 @@
                                         </label>
 
                                         <label>
-                                            <input type="checkbox" name="amenities[]" value="Electric Fan">
+                                            <input type="checkbox" name="amenities[]" value="ElectricFan">
                                             🌀 Electric Fan
                                         </label>
 
                                         <label>
-                                            <input type="checkbox" name="amenities[]" value="Private CR">
+                                            <input type="checkbox" name="amenities[]" value="PrivateCR">
                                             🚿 Private CR
                                         </label>
 
                                         <label>
-                                            <input type="checkbox" name="amenities[]" value="Shared CR">
+                                            <input type="checkbox" name="amenities[]" value="SharedCR">
                                             🚿 Shared CR
                                         </label>
 
@@ -325,7 +326,7 @@
                                         </label>
 
                                         <label>
-                                            <input type="checkbox" name="amenities[]" value="Laundry Area">
+                                            <input type="checkbox" name="amenities[]" value="LaundryArea">
                                             🧺 Laundry Area
                                         </label>
 
@@ -435,36 +436,172 @@
 
                     <!-- ═══ STEP 4: CONFIRM ═══ -->
                     <div class="step-slide" id="step4">
+
                         <div class="form-head">
                             <h1>Almost there!</h1>
                             <p>Review your information before creating your account</p>
                         </div>
 
-                        <div class="summary-card" id="summaryCard">
-                            <!-- filled by JS -->
+
+                        <!-- ============================= -->
+                        <!-- ACCOUNT INFORMATION SUMMARY -->
+                        <!-- ============================= -->
+
+                        <div class="summary-card">
+
+                            <div class="summary-row">
+                                <span>Property Name</span>
+                                <strong>
+                                    {{ $landlordDetail->property_name ?? 'Not filled' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Property Type</span>
+                                <strong>
+                                    {{ $landlordDetail->property_type ?? 'Not filled' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Number of Rooms</span>
+                                <strong>
+                                    {{ $landlordDetail->number_of_rooms ?? 'Not filled' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Beds Per Room</span>
+                                <strong>
+                                    {{ $landlordDetail->bed_per_room ?? 'Not filled' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Monthly Rent</span>
+
+                                <strong>
+                                    {{ isset($landlordDetail->monthly_rent) ? '₱' . number_format($landlordDetail->monthly_rent, 2) : 'Not filled' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Address</span>
+
+                                <strong>
+                                    {{ $landlordDetail->full_address ?? 'Not filled' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Amenities</span>
+
+                                <strong>
+                                    {{ !empty($landlordDetail->amenities) ? implode(', ', $landlordDetail->amenities) : 'None' }}
+                                </strong>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>House Rules</span>
+
+                                <strong>
+                                    {{ $landlordDetail->house_rules ?? 'None' }}
+                                </strong>
+                            </div>
+
                         </div>
+
+
+                        <!-- ============================= -->
+                        <!-- EMAIL VERIFICATION -->
+                        <!-- ============================= -->
 
                         <div class="verify-box">
+
                             <span class="verify-icon">📧</span>
+
                             <h3>Verify your email</h3>
-                            <p>We'll send a 6-digit code to <strong id="emailDisplay"></strong>. Enter it below to
-                                confirm your account.</p>
-                            <div class="otp-wrap">
-                                <input type="text" maxlength="1" class="otp-input" oninput="otpNext(this,0)" />
-                                <input type="text" maxlength="1" class="otp-input" oninput="otpNext(this,1)" />
-                                <input type="text" maxlength="1" class="otp-input" oninput="otpNext(this,2)" />
-                                <input type="text" maxlength="1" class="otp-input" oninput="otpNext(this,3)" />
-                                <input type="text" maxlength="1" class="otp-input" oninput="otpNext(this,4)" />
-                                <input type="text" maxlength="1" class="otp-input" oninput="otpNext(this,5)" />
-                            </div>
-                            <p class="resend">Didn't get it? <a href="#" onclick="resendCode(event)">Resend
-                                    code</a></p>
+
+                            <p>
+                                We sent a 6-digit code to
+                                <strong id="emailDisplay">
+                                    {{ session('otp_email') }}
+                                </strong>.
+                            </p>
+
+                            <p>
+                                Enter the code below to create your account.
+                            </p>
+
+
+                            <!-- OTP FORM -->
+                            <form id="otpForm" method="POST" action="{{ route('verify-otp') }}">
+
+                                @csrf
+
+
+                                <!-- OTP BOXES -->
+                                <div class="otp-wrap">
+
+                                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
+                                        autocomplete="one-time-code" name="otp1" oninput="otpNext(this, 0)"
+                                        onkeydown="otpBack(event, 0)" />
+
+                                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
+                                        name="otp2" oninput="otpNext(this, 1)" onkeydown="otpBack(event, 1)" />
+
+                                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
+                                        name="otp3" oninput="otpNext(this, 2)" onkeydown="otpBack(event, 2)" />
+
+                                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
+                                        name="otp4" oninput="otpNext(this, 3)" onkeydown="otpBack(event, 3)" />
+
+                                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
+                                        name="otp5" oninput="otpNext(this, 4)" onkeydown="otpBack(event, 4)" />
+
+                                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
+                                        name="otp6" oninput="otpNext(this, 5)" onkeydown="otpBack(event, 5)" />
+
+                                </div>
+
+
+                                <!-- COMPLETE OTP -->
+                                <input type="hidden" name="otp" id="otp" />
+
+
+                                <!-- ERROR / SUCCESS MESSAGE -->
+                                <p id="otpMessage"></p>
+
+
+                                <!-- RESEND -->
+                                <p class="resend">
+                                    Didn't get it?
+
+                                    <a href="#" onclick="resendCode(event)">
+                                        Resend code
+                                    </a>
+                                </p>
+
+
+                                <!-- CREATE ACCOUNT BUTTON -->
+                                <button type="submit" class="btn-full" id="btnSubmit">
+
+                                    🎉 Create My Account
+
+                                </button>
+
+                            </form>
+
                         </div>
 
-                        <button class="btn-back" onclick="goStep(3)">← Back</button>
-                        <button class="btn-full" onclick="submitForm()" id="btnSubmit">
-                            🎉 Create My Account
+
+                        <!-- BACK BUTTON -->
+                        <button type="button" class="btn-back" onclick="goStep(3)">
+
+                            ← Back
+
                         </button>
+
                     </div>
 
                 </div><!-- /form-shell -->
@@ -482,6 +619,72 @@
         </div><!-- /form-panel -->
     </div><!-- /page -->
 
+    <script>
+        const otpInputs = document.querySelectorAll('.otp-input');
+
+
+        function otpNext(input, index) {
+            // Only allow numbers
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // Move to next box
+            if (input.value.length === 1 && index < 5) {
+                otpInputs[index + 1].focus();
+            }
+
+            updateOTP();
+        }
+
+
+        function otpBack(event, index) {
+            if (
+                event.key === 'Backspace' &&
+                otpInputs[index].value === ''
+            ) {
+
+                if (index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            }
+
+            updateOTP();
+        }
+
+
+        function updateOTP() {
+            let otp = '';
+
+            otpInputs.forEach(function(input) {
+                otp += input.value;
+            });
+
+            document.getElementById('otp').value = otp;
+        }
+
+
+        document.getElementById('otpForm').addEventListener('submit', function(event) {
+            updateOTP();
+
+            const otp = document.getElementById('otp').value;
+
+            if (otp.length !== 6) {
+
+                event.preventDefault();
+
+                document.getElementById('otpMessage').innerHTML =
+                    '<span style="color:red;">Please enter the complete 6-digit code.</span>';
+
+                return;
+            }
+
+            // Change button text
+            document.getElementById('btnSubmit').innerHTML =
+                '⏳ Creating Account...';
+
+            // Disable button to prevent double-click
+            document.getElementById('btnSubmit').disabled = true;
+        });
+    </script>
     <script>
         /* ── STATE ── */
         let currentStep = 1;
@@ -559,7 +762,7 @@
                 const slide = selectedRole === 'landlord' ? 'step3landlord' : 'step3tenant';
                 document.getElementById(slide).classList.add('active');
             } else if (n === 4) {
-                buildSummary();
+
                 document.getElementById('step4').classList.add('active');
             } else {
                 document.getElementById('step' + n).classList.add('active');
@@ -622,31 +825,7 @@
         }
 
         /* ── SUMMARY ── */
-        function buildSummary() {
-            const fname = document.getElementById('firstName').value || 'Not filled';
-            const lname = document.getElementById('lastName').value || 'Not filled';
-            const email = document.getElementById('emailInput').value || 'Not filled';
-            const phone = document.getElementById('phoneInput').value || 'Not filled';
 
-            document.getElementById('emailDisplay').textContent = email;
-
-            const rows = [
-                ['Full Name', `${fname} ${lname}`],
-                ['Email', email],
-                ['Phone', phone],
-                ['Role', selectedRole === 'landlord' ? '🏡 Landlord' : '🙋 Tenant'],
-                ['Status', `<span class="summary-badge">⏳ Pending Verification</span>`],
-            ];
-            if (selectedRole === 'landlord') {
-                rows.push(['Admin Approval',
-                    '<span class="summary-badge" style="background:rgba(255,126,179,.1);color:var(--accent3)">Required</span>'
-                ]);
-            }
-
-            document.getElementById('summaryCard').innerHTML = rows.map(([k, v]) =>
-                `<div class="summary-row"><span>${k}</span><strong>${v}</strong></div>`
-            ).join('');
-        }
 
         /* ── OTP ── */
         function otpNext(el, idx) {
