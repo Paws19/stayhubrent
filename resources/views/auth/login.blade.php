@@ -86,10 +86,10 @@
                         </div>
 
                         <div class="form-row-between">
-                            <label class="check-field">
+                            {{-- <label class="check-field">
                                 <input type="checkbox" name="remember" />
                                 <span>Remember me</span>
-                            </label>
+                            </label> --}}
                             <a href="" class="forgot-link">Forgot password?</a>
                         </div>
 
@@ -100,10 +100,6 @@
 
                     <div class="or-line">or continue with</div>
 
-                    <div class="social-btns">
-                        <button class="social-btn" type="button">🔵 Google</button>
-                        <button class="social-btn" type="button">📘 Facebook</button>
-                    </div>
 
                     <p class="signin-link">Don't have an account? <a href="{{ route('get-started') }}">Create one</a>
                     </p>
