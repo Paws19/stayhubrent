@@ -27,9 +27,26 @@ Route::post('/landlord-details', [App\Http\Controllers\LandlordDetailController:
     ->name('landlord-details.store');
 
 
-//Dashboard routes
-Route::get('/dashboard/landlord', [App\Http\Controllers\Dashboard\LandlordController::class, 'index'])
-    ->name('dashboard.landlord');
+// ========================================
+// DASHBOARD ROUTES
+// ========================================
 
-Route::get('/dashboard/tenant', [App\Http\Controllers\Dashboard\TenantController::class, 'index'])
+// LANDLORD DASHBOARD
+Route::get('/dashboard/landlord', [
+    App\Http\Controllers\Dashboard\LandlordController::class,
+    'index'
+])
+    ->middleware(['auth', 'role:landlord'])
+    ->name('dashboard.landlord');
+Route::post('/logout', [App\Http\Controllers\AccountController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout.store');
+
+
+// TENANT DASHBOARD
+Route::get('/dashboard/tenant', [
+    App\Http\Controllers\Dashboard\TenantController::class,
+    'index'
+])
+    ->middleware(['auth', 'role:tenant'])
     ->name('dashboard.tenant');

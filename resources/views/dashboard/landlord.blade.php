@@ -10,6 +10,292 @@
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/landlord.css') }}">
+
+    <style>
+        /* =========================================
+   logout css
+========================================= */
+
+        .owner-chip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .owner-chip:hover {
+            background: rgba(255, 193, 7, 0.10);
+        }
+
+        .owner-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: linear-gradient(135deg, #f5c542, #d9a928);
+            color: #fff;
+
+            font-size: 16px;
+            font-weight: 700;
+
+            flex-shrink: 0;
+        }
+
+        .owner-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .owner-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .owner-role {
+            margin-top: 2px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .owner-arrow {
+            font-size: 22px;
+            color: #999;
+            line-height: 1;
+        }
+
+
+        /* =========================================
+   LOGOUT OVERLAY
+========================================= */
+
+        .logout-overlay {
+            position: fixed;
+            inset: 0;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(0, 0, 0, 0.45);
+
+            backdrop-filter: blur(5px);
+
+            z-index: 9999;
+
+            padding: 20px;
+        }
+
+        .logout-overlay.active {
+            display: flex;
+        }
+
+
+        /* =========================================
+   LOGOUT MODAL
+========================================= */
+
+        .logout-modal {
+            position: relative;
+
+            width: 100%;
+            max-width: 390px;
+
+            background: #fff;
+
+            border-radius: 22px;
+
+            padding: 32px;
+
+            text-align: center;
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.20);
+
+            animation: logoutPop 0.25s ease;
+        }
+
+        @keyframes logoutPop {
+
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+        }
+
+
+        /* =========================================
+   CLOSE BUTTON
+========================================= */
+
+        .logout-close {
+            position: absolute;
+
+            top: 14px;
+            right: 16px;
+
+            width: 32px;
+            height: 32px;
+
+            border: none;
+            background: transparent;
+
+            font-size: 25px;
+            color: #999;
+
+            cursor: pointer;
+
+            border-radius: 50%;
+
+            transition: 0.2s;
+        }
+
+        .logout-close:hover {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+
+        /* =========================================
+   LOGOUT ICON
+========================================= */
+
+        .logout-icon {
+            width: 65px;
+            height: 65px;
+
+            margin: 0 auto 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #fff7d6;
+
+            font-size: 28px;
+
+            box-shadow: 0 8px 20px rgba(245, 197, 66, 0.18);
+        }
+
+
+        /* =========================================
+   TEXT
+========================================= */
+
+        .logout-modal h3 {
+            margin: 0;
+
+            font-size: 22px;
+            font-weight: 700;
+
+            color: #222;
+        }
+
+        .logout-modal p {
+            margin: 9px 0 25px;
+
+            font-size: 14px;
+            line-height: 1.6;
+
+            color: #777;
+        }
+
+
+        /* =========================================
+   BUTTONS
+========================================= */
+
+        .logout-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .logout-actions button {
+            flex: 1;
+
+            height: 45px;
+
+            border-radius: 11px;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: all 0.2s ease;
+        }
+
+        .logout-actions form {
+            flex: 1;
+            display: flex;
+            margin: 0;
+        }
+
+        .logout-cancel {
+            border: 1px solid #e5e5e5;
+
+            background: #fff;
+
+            color: #555;
+        }
+
+        .logout-cancel:hover {
+            background: #f7f7f7;
+        }
+
+        .logout-confirm {
+            width: 100%;
+            border: none;
+
+            background: #f5c542;
+
+            color: #fff;
+
+            box-shadow: 0 6px 15px rgba(245, 197, 66, 0.25);
+        }
+
+        .logout-confirm:hover {
+            background: #e3b329;
+
+            transform: translateY(-1px);
+        }
+
+
+        /* =========================================
+   MOBILE
+========================================= */
+
+        @media (max-width: 480px) {
+
+            .logout-modal {
+                padding: 28px 22px;
+            }
+
+            .logout-actions {
+                flex-direction: column-reverse;
+            }
+
+        }
+    </style>
 </head>
 
 <body>
@@ -81,12 +367,26 @@
             </nav>
 
             <div class="sidebar-foot">
-                <div class="owner-chip">
-                    <div class="owner-avatar">R</div>
-                    <div>
-                        <div class="owner-name">Raineil</div>
-                        <div class="owner-role">Property Owner</div>
+                <div class="owner-chip" onclick="openLogoutModal()">
+
+                    <div class="owner-avatar">
+                        {{ strtoupper(substr(auth()->user()->email ?? 'U', 0, 1)) }}
                     </div>
+
+                    <div class="owner-info">
+                        <div class="owner-name">
+                            {{ auth()->user()->email }}
+                        </div>
+
+                        <div class="owner-role">
+                            Property Owner
+                        </div>
+                    </div>
+
+                    <div class="owner-arrow">
+                        ⋮
+                    </div>
+
                 </div>
             </div>
         </aside>
@@ -204,6 +504,48 @@
         </main>
     </div>
 
+    <!-- ========================================= -->
+    <!-- LOGOUT MODAL (moved out of the sidebar) -->
+
+    <!-- ========================================= -->
+    <div class="logout-overlay" id="logoutModal">
+
+        <div class="logout-modal">
+
+            <button class="logout-close" onclick="closeLogoutModal()">
+                ×
+            </button>
+
+            <div class="logout-icon">
+                🚪
+            </div>
+
+            <h3>Ready to leave?</h3>
+
+            <p>
+                Are you sure you want to log out of your account?
+            </p>
+
+            <div class="logout-actions">
+
+                <button type="button" class="logout-cancel" onclick="closeLogoutModal()">
+                    Cancel
+                </button>
+
+                <form method="POST" action="{{ route('logout.store') }}">
+                    @csrf
+
+                    <button type="submit" class="logout-confirm">
+                        Yes, Log Out
+                    </button>
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
     <!-- Payment modal -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal">
@@ -281,6 +623,8 @@
     </div>
 
     <div class="toast" id="toast"></div>
+
+
 
     <script>
         (function() {
@@ -645,13 +989,13 @@
                     return `<div>
         <div class="kcol-head"><span class="dot" style="background:${c.color}"></span>${c.label} (${items.length})</div>
         ${items.map(m=>`
-                  <div class="kcard" draggable="true" data-id="${m.id}">
-                    <div class="ktitle">${m.desc}</div>
-                    <div class="kmeta">
-                      <span class="unit-tag" style="font-size:10.5px;padding:2px 7px;">${m.unit}</span>
-                      <span class="priority ${m.priority}">${m.priority}</span>
-                    </div>
-                  </div>`).join('') || `<div class="empty-state" style="padding:16px 8px;font-size:12.5px;">Nothing here</div>`}
+                                                                                                                  <div class="kcard" draggable="true" data-id="${m.id}">
+                                                                                                                    <div class="ktitle">${m.desc}</div>
+                                                                                                                    <div class="kmeta">
+                                                                                                                      <span class="unit-tag" style="font-size:10.5px;padding:2px 7px;">${m.unit}</span>
+                                                                                                                      <span class="priority ${m.priority}">${m.priority}</span>
+                                                                                                                    </div>
+                                                                                                                  </div>`).join('') || `<div class="empty-state" style="padding:16px 8px;font-size:12.5px;">Nothing here</div>`}
       </div>`;
                 }).join('');
 
@@ -820,6 +1164,46 @@
             renderNotices();
 
         })();
+    </script>
+    <script>
+        //logout button modal
+        function openLogoutModal() {
+
+            document.getElementById('logoutModal')
+                .classList.add('active');
+
+        }
+
+
+        function closeLogoutModal() {
+
+            document.getElementById('logoutModal')
+                .classList.remove('active');
+
+        }
+
+
+        /* Close when clicking outside the modal */
+
+        document.getElementById('logoutModal')
+            .addEventListener('click', function(event) {
+
+                if (event.target === this) {
+                    closeLogoutModal();
+                }
+
+            });
+
+
+        /* Close with ESC */
+
+        document.addEventListener('keydown', function(event) {
+
+            if (event.key === 'Escape') {
+                closeLogoutModal();
+            }
+
+        });
     </script>
 </body>
 

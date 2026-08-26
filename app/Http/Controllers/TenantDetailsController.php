@@ -28,7 +28,21 @@ class TenantDetailsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:tenant_details,email',
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:255',
+        ]);
+
+        $tenantDetails = new TenantDetails();
+        $tenantDetails->full_name = $request->input('full_name');
+        $tenantDetails->email = $request->input('email');
+        $tenantDetails->phone_number = $request->input('phone_number');
+        $tenantDetails->address = $request->input('address');
+        $tenantDetails->save();
+
+        return redirect()->route('dashboard.tenant')->with('success', 'Tenant details saved successfully.');
     }
 
     /**

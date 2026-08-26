@@ -143,4 +143,23 @@ public function store(Request $request)
     // Fallback
     return redirect()->route('dashboard');
 }
+
+
+//logout method
+public function logout(Request $request)
+{
+    // Log the user out
+    Auth::logout();
+
+    // Destroy the current session
+    $request->session()->invalidate();
+
+    // Create a new CSRF token
+    $request->session()->regenerateToken();
+
+    // Send user back to login
+    return redirect()->route('login')
+        ->with('success', 'You have been logged out successfully.');
+}
+
 }

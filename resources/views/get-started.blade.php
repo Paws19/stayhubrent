@@ -434,7 +434,10 @@
                         <button class="btn-full" onclick="goStep(4)">Continue →</button>
                     </div>
 
-                    <!-- ═══ STEP 4: CONFIRM ═══ -->
+                    <!-- ═══════════════════════════════════════ -->
+                    <!-- STEP 4: CONFIRM -->
+                    <!-- ═══════════════════════════════════════ -->
+
                     <div class="step-slide" id="step4">
 
                         <div class="form-head">
@@ -443,78 +446,162 @@
                         </div>
 
 
-                        <!-- ============================= -->
-                        <!-- ACCOUNT INFORMATION SUMMARY -->
-                        <!-- ============================= -->
+                        <!-- ===================================== -->
+                        <!-- LANDLORD SUMMARY -->
+                        <!-- ===================================== -->
 
-                        <div class="summary-card">
+                        <div id="landlordSummary" class="role-summary">
 
-                            <div class="summary-row">
-                                <span>Property Name</span>
-                                <strong>
-                                    {{ $landlordDetail->property_name ?? 'Not filled' }}
-                                </strong>
+                            <div class="summary-title">
+                                🏡 Property Information
                             </div>
 
-                            <div class="summary-row">
-                                <span>Property Type</span>
-                                <strong>
-                                    {{ $landlordDetail->property_type ?? 'Not filled' }}
-                                </strong>
-                            </div>
+                            <div class="summary-card">
 
-                            <div class="summary-row">
-                                <span>Number of Rooms</span>
-                                <strong>
-                                    {{ $landlordDetail->number_of_rooms ?? 'Not filled' }}
-                                </strong>
-                            </div>
+                                <div class="summary-row">
+                                    <span>Property Name</span>
+                                    <strong>
+                                        {{ $landlordDetail->property_name ?? 'Not filled' }}
+                                    </strong>
+                                </div>
 
-                            <div class="summary-row">
-                                <span>Beds Per Room</span>
-                                <strong>
-                                    {{ $landlordDetail->bed_per_room ?? 'Not filled' }}
-                                </strong>
-                            </div>
+                                <div class="summary-row">
+                                    <span>Property Type</span>
+                                    <strong>
+                                        {{ $landlordDetail->property_type ?? 'Not filled' }}
+                                    </strong>
+                                </div>
 
-                            <div class="summary-row">
-                                <span>Monthly Rent</span>
+                                <div class="summary-row">
+                                    <span>Number of Rooms</span>
+                                    <strong>
+                                        {{ $landlordDetail->number_of_rooms ?? 'Not filled' }}
+                                    </strong>
+                                </div>
 
-                                <strong>
-                                    {{ isset($landlordDetail->monthly_rent) ? '₱' . number_format($landlordDetail->monthly_rent, 2) : 'Not filled' }}
-                                </strong>
-                            </div>
+                                <div class="summary-row">
+                                    <span>Beds Per Room</span>
+                                    <strong>
+                                        {{ $landlordDetail->bed_per_room ?? 'Not filled' }}
+                                    </strong>
+                                </div>
 
-                            <div class="summary-row">
-                                <span>Address</span>
+                                <div class="summary-row">
+                                    <span>Monthly Rent</span>
+                                    <strong>
+                                        {{ isset($landlordDetail->monthly_rent) ? '₱' . number_format($landlordDetail->monthly_rent, 2) : 'Not filled' }}
+                                    </strong>
+                                </div>
 
-                                <strong>
-                                    {{ $landlordDetail->full_address ?? 'Not filled' }}
-                                </strong>
-                            </div>
+                                <div class="summary-row">
+                                    <span>Address</span>
+                                    <strong>
+                                        {{ $landlordDetail->full_address ?? 'Not filled' }}
+                                    </strong>
+                                </div>
 
-                            <div class="summary-row">
-                                <span>Amenities</span>
+                                <div class="summary-row">
+                                    <span>Amenities</span>
+                                    <strong>
+                                        {{ !empty($landlordDetail->amenities) ? implode(', ', $landlordDetail->amenities) : 'None' }}
+                                    </strong>
+                                </div>
 
-                                <strong>
-                                    {{ !empty($landlordDetail->amenities) ? implode(', ', $landlordDetail->amenities) : 'None' }}
-                                </strong>
-                            </div>
+                                <div class="summary-row">
+                                    <span>House Rules</span>
+                                    <strong>
+                                        {{ $landlordDetail->house_rules ?? 'None' }}
+                                    </strong>
+                                </div>
 
-                            <div class="summary-row">
-                                <span>House Rules</span>
-
-                                <strong>
-                                    {{ $landlordDetail->house_rules ?? 'None' }}
-                                </strong>
                             </div>
 
                         </div>
 
 
-                        <!-- ============================= -->
+                        <!-- ===================================== -->
+                        <!-- TENANT SUMMARY -->
+                        <!-- ===================================== -->
+
+                        <div id="tenantSummary" class="role-summary" style="display:none;">
+
+                            <div class="summary-title">
+                                🙋 Tenant Information
+                            </div>
+
+                            <div class="summary-card">
+
+                                <div class="summary-row">
+                                    <span>Full Name</span>
+                                    <strong id="summaryFullName">
+                                        {{ session('tenant_full_name', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Date of Birth</span>
+                                    <strong id="summaryBirthdate">
+                                        {{ session('tenant_birthdate', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Gender</span>
+                                    <strong id="summaryGender">
+                                        {{ session('tenant_gender', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Occupation / School</span>
+                                    <strong id="summaryOccupation">
+                                        {{ session('tenant_occupation', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Preferred Location</span>
+                                    <strong id="summaryLocation">
+                                        {{ session('tenant_location', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Budget</span>
+                                    <strong id="summaryBudget">
+                                        {{ session('tenant_budget', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Room Type</span>
+                                    <strong id="summaryRoomType">
+                                        {{ session('tenant_room_type', 'Any type') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Emergency Contact</span>
+                                    <strong id="summaryEmergency">
+                                        {{ session('tenant_emergency_name', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                                <div class="summary-row">
+                                    <span>Emergency Number</span>
+                                    <strong id="summaryEmergencyNumber">
+                                        {{ session('tenant_emergency_number', 'Not filled') }}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
                         <!-- EMAIL VERIFICATION -->
-                        <!-- ============================= -->
+                        <!-- ===================================== -->
 
                         <div class="verify-box">
 
@@ -526,7 +613,7 @@
                                 We sent a 6-digit code to
                                 <strong id="emailDisplay">
                                     {{ session('otp_email') }}
-                                </strong>.
+                                </strong>
                             </p>
 
                             <p>
@@ -535,12 +622,12 @@
 
 
                             <!-- OTP FORM -->
+
                             <form id="otpForm" method="POST" action="{{ route('verify-otp') }}">
 
                                 @csrf
 
 
-                                <!-- OTP BOXES -->
                                 <div class="otp-wrap">
 
                                     <input type="text" maxlength="1" class="otp-input" inputmode="numeric"
@@ -566,14 +653,13 @@
 
 
                                 <!-- COMPLETE OTP -->
+
                                 <input type="hidden" name="otp" id="otp" />
 
 
-                                <!-- ERROR / SUCCESS MESSAGE -->
                                 <p id="otpMessage"></p>
 
 
-                                <!-- RESEND -->
                                 <p class="resend">
                                     Didn't get it?
 
@@ -583,7 +669,8 @@
                                 </p>
 
 
-                                <!-- CREATE ACCOUNT BUTTON -->
+                                <!-- CREATE ACCOUNT -->
+
                                 <button type="submit" class="btn-full" id="btnSubmit">
 
                                     🎉 Create My Account
@@ -595,8 +682,9 @@
                         </div>
 
 
-                        <!-- BACK BUTTON -->
-                        <button type="button" class="btn-back" onclick="goStep(3)">
+                        <!-- BACK -->
+
+                        <button type="button" class="btn-back" onclick="goBackFromStep4()">
 
                             ← Back
 
