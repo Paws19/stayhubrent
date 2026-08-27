@@ -53,6 +53,10 @@ Route::get('/dashboard/tenant', [
     ->middleware(['auth', 'role:tenant'])
     ->name('dashboard.tenant');
 
+Route::post('/request-maintenance', [App\Http\Controllers\MaintenanceRequestController::class, 'store'])
+    ->middleware('auth')
+    ->name('request-maintenance.store');
+
     Route::post('/logout', [App\Http\Controllers\AccountController::class, 'logout'])
     ->middleware('auth')
     ->name('logout.store');

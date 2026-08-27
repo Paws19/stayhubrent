@@ -322,11 +322,44 @@
                     <div class="maint-item"
                         data-toast="Dummy action: opens full details for &quot;Leaking faucet in shared CR&quot;.">
                         <div class="maint-icon">🚿</div>
-                        <div class="maint-info">
-                            <h5>Leaking faucet in shared CR</h5>
-                            <p>Filed May 2 · Assigned to maintenance team</p>
-                        </div>
-                        <span class="badge badge-yellow">Ongoing</span>
+
+                        @if ($pendingRequests->count() > 0)
+
+                            @foreach ($pendingRequests as $request)
+                                <div class="maintenance-item">
+
+                                    <div class="maint-info">
+
+                                        <h5>
+                                            {{ ucfirst($request->request_title) }}
+                                        </h5>
+
+                                        <p>
+                                            Filed {{ $request->created_at->format('M j, Y') }}
+                                            · Assigned to maintenance team
+                                        </p>
+
+                                    </div>
+
+                                    <span class="badge badge-yellow">
+                                        {{ ucfirst($request->request_status) }}
+                                    </span>
+
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-maintenance">
+                                <div class="empty-icon">🔧</div>
+
+                                <h5>No maintenance requests</h5>
+
+                                <p>
+                                    You don't have any pending maintenance requests.
+                                </p>
+                            </div>
+
+                        @endif
+
                     </div>
                 </div>
 
@@ -434,42 +467,130 @@
 
     <!-- NEW MAINTENANCE REQUEST MODAL -->
     <div class="modal-overlay" id="requestModal">
+
         <div class="modal-card">
+
+            <!-- HEADER -->
             <div class="modal-head">
                 <h3>New Maintenance Request</h3>
-                <button class="modal-close" data-close-modal="requestModal">✕</button>
+
+                <button type="button" class="modal-close" data-close-modal="requestModal">
+                    ✕
+                </button>
             </div>
-            <div class="form-group">
-                <label>What needs attention?</label>
-                <select>
-                    <option>Plumbing</option>
-                    <option>Electrical</option>
-                    <option>Aircon</option>
-                    <option>Furniture</option>
-                    <option>Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Describe the issue</label>
-                <textarea placeholder="e.g. The sink in the shared kitchen is clogged…"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Add a photo (optional)</label>
-                <div class="dropzone" id="photoDropzone">
-                    <span class="ic">📷</span>
-                    Drag a photo here, or click to browse
-                    <input type="file" id="photoInput" accept="image/*" />
+
+
+            <!-- FORM -->
+            <form id="requestForm" action="{{ route('request-maintenance.store') }}" method="POST"
+                enctype="multipart/form-data">
+
+                @csrf
+
+                <input type="hidden" name="account_id" value="{{ Auth::user()->id }}">
+
+                <!-- REQUEST TYPE -->
+                <div class="form-group">
+
+                    <label for="request_title">
+                        What needs attention?
+                    </label>
+
+                    <select name="request_title" id="request_title" required>
+
+                        <option value="" selected disabled>
+                            Select an issue
+                        </option>
+
+                        <option value="plumbing">
+                            Plumbing
+                        </option>
+
+                        <option value="electrical">
+                            Electrical
+                        </option>
+
+                        <option value="aircon">
+                            Aircon
+                        </option>
+
+                        <option value="furniture">
+                            Furniture
+                        </option>
+
+                        <option value="other">
+                            Other
+                        </option>
+
+                    </select>
+
                 </div>
-                <div class="file-chip" id="photoChip">
-                    <span class="fx" id="photoFileName"></span>
-                    <button id="photoRemove" aria-label="Remove file">✕</button>
+
+
+                <!-- DESCRIPTION -->
+                <div class="form-group">
+
+                    <label for="request_description">
+                        Describe the issue
+                    </label>
+
+                    <textarea name="request_description" id="request_description"
+                        placeholder="e.g. The sink in the shared kitchen is clogged..." maxlength="1000" required></textarea>
+
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-ghost" data-close-modal="requestModal">Cancel</button>
-                <button class="btn-primary" id="submitRequestBtn">Submit Request</button>
-            </div>
+
+
+                <!-- IMAGE -->
+                <div class="form-group">
+
+                    <label>
+                        Add a photo (optional)
+                    </label>
+
+                    <div class="dropzone" id="photoDropzone">
+
+                        <span class="ic">📷</span>
+
+                        <span>
+                            Drag a photo here, or click to browse
+                        </span>
+
+                        <input type="file" id="photoInput" name="request_image"
+                            accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml">
+
+                    </div>
+
+
+                    <!-- SELECTED FILE -->
+                    <div class="file-chip" id="photoChip" style="display:none;">
+
+                        <span class="fx" id="photoFileName"></span>
+
+                        <button type="button" id="photoRemove" aria-label="Remove file">
+                            ✕
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+
+                    <button type="button" class="btn-ghost" data-close-modal="requestModal">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="btn-primary" id="submitRequestBtn">
+                        Submit Request
+                    </button>
+
+                </div>
+
+            </form>
+
         </div>
+
     </div>
 
     <!-- LOGOUT CONFIRM MODAL — reuses the same modal system as above -->
@@ -522,13 +643,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         /* ───────────────────────────────────────────
-                           NOTE FOR BACKEND INTEGRATION:
-                           Every dummy alert/toast below is marked so you
-                           can swap it for a real fetch()/axios call once
-                           your endpoints are ready. Nothing here talks to
-                           a server yet — except the logout form, which
-                           already posts to {{ route('logout.store') }}.
-                        ─────────────────────────────────────────── */
+                                                                                                                   NOTE FOR BACKEND INTEGRATION:
+                                                                                                                   Every dummy alert/toast below is marked so you
+                                                                                                                   can swap it for a real fetch()/axios call once
+                                                                                                                   your endpoints are ready. Nothing here talks to
+                                                                                                                   a server yet — except the logout form, which
+                                                                                                                   already posts to {{ route('logout.store') }}.
+                                                                                                                ─────────────────────────────────────────── */
 
         // Theme toggle
         const toggle = document.getElementById('themeToggle');
