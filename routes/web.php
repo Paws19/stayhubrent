@@ -25,6 +25,8 @@ Route::post('/role', [App\Http\Controllers\AccountController::class, 'store'])
     ->name('role.store');
 Route::post('/landlord-details', [App\Http\Controllers\LandlordDetailController::class, 'store'])
     ->name('landlord-details.store');
+Route::post('/tenant-details', [App\Http\Controllers\TenantDetailsController::class, 'store'])
+    ->name('tenant-details.store');
 
 
 // ========================================
@@ -50,3 +52,7 @@ Route::get('/dashboard/tenant', [
 ])
     ->middleware(['auth', 'role:tenant'])
     ->name('dashboard.tenant');
+
+    Route::post('/logout', [App\Http\Controllers\AccountController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout.store');

@@ -138,6 +138,35 @@ a {
     color: #111;
 }
 
+.property-address {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #9ba9b8;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.property-address svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    opacity: 0.8;
+}
+
+.property-address a {
+    color: var(--brass);
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.property-address a:hover {
+    text-decoration: underline;
+}
+
 nav.navlinks {
     display: flex;
     flex-direction: column;
@@ -544,6 +573,20 @@ tr.tenant-row:hover {
     color: var(--ink-soft);
 }
 
+.name-cell .addr-note {
+    font-size: 11px;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+
+.name-cell .addr-note svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
 /* Receipt stub - signature element */
 .ledger-list {
     display: flex;
@@ -614,6 +657,8 @@ tr.tenant-row:hover {
 .receipt-action {
     margin-left: auto;
     padding-right: 78px;
+    display: flex;
+    gap: 8px;
 }
 
 /* Maintenance kanban */

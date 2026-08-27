@@ -359,79 +359,293 @@
                         <button class="btn-back" onclick="goStep(2)">← Back</button>
                     </div>
 
-                    <!-- TENANT DETAILS -->
+                    <!-- ═══════════════════════════════════════ -->
+                    <!-- STEP 3: TENANT DETAILS -->
+                    <!-- ═══════════════════════════════════════ -->
+
                     <div class="step-slide" id="step3tenant">
+
                         <div class="form-head">
                             <h1>Your Preferences</h1>
                             <p>Help us find the right room for you</p>
                         </div>
 
-                        <div class="field-group">
-                            <div class="field">
-                                <label>Date of Birth <span>*</span></label>
-                                <input type="date" />
-                            </div>
-                            <div class="field">
-                                <label>Gender</label>
-                                <select>
-                                    <option value="">Select...</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                    <option>Prefer not to say</option>
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label>Occupation / School</label>
-                                <input type="text" placeholder="e.g. UST Student / Call Center Agent" />
-                            </div>
-                            <div class="field">
-                                <label>Preferred Location <span>*</span></label>
-                                <input type="text" placeholder="e.g. Quezon City, Pasig, Mandaluyong" />
-                            </div>
-                            <div class="field-row">
-                                <div class="field">
-                                    <label>Min Budget (₱)</label>
-                                    <input type="number" placeholder="e.g. 2000" />
-                                </div>
-                                <div class="field">
-                                    <label>Max Budget (₱) <span>*</span></label>
-                                    <input type="number" placeholder="e.g. 5000" />
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label>Room Type Preference</label>
-                                <select>
-                                    <option value="">Any type</option>
-                                    <option>Private Room</option>
-                                    <option>Shared Room</option>
-                                    <option>Bed Space</option>
-                                    <option>Studio Unit</option>
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label>Must-Have Amenities</label>
-                                <div class="amenity-grid">
-                                    <span class="amenity-pill" onclick="togglePill(this)">📶 WiFi</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">❄️ Aircon</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🚿 Private CR</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🍳 Kitchen</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🧺 Laundry</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🔐 CCTV</span>
-                                    <span class="amenity-pill" onclick="togglePill(this)">🚗 Parking</span>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label>Emergency Contact Name <span>*</span></label>
-                                <input type="text" placeholder="Full name" />
-                            </div>
-                            <div class="field">
-                                <label>Emergency Contact Number <span>*</span></label>
-                                <input type="tel" placeholder="+63 9XX XXX XXXX" />
-                            </div>
-                        </div>
 
-                        <button class="btn-back" onclick="goStep(2)">← Back</button>
-                        <button class="btn-full" onclick="goStep(4)">Continue →</button>
+                        <!-- TENANT DETAILS FORM -->
+
+                        <form method="POST" action="{{ route('tenant-details.store') }}">
+
+                            @csrf
+
+                            <!-- Account ID -->
+                            <input type="hidden" name="account_id" value="{{ session('account_id') }}">
+
+
+                            <div class="field-group">
+
+
+                                <!-- DATE OF BIRTH -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Date of Birth <span>*</span>
+                                    </label>
+
+                                    <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
+                                        required>
+
+                                </div>
+
+
+                                <!-- GENDER -->
+
+                                <div class="field">
+
+                                    <label>Gender</label>
+
+                                    <select name="gender">
+
+                                        <option value="">
+                                            Select...
+                                        </option>
+
+                                        <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>
+                                            Male
+                                        </option>
+
+                                        <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>
+                                            Female
+                                        </option>
+
+                                        <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>
+                                            Prefer not to say
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- OCCUPATION / SCHOOL -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Occupation / School
+                                    </label>
+
+                                    <input type="text" name="occupation_or_school"
+                                        value="{{ old('occupation_or_school') }}"
+                                        placeholder="e.g. UST Student / Call Center Agent">
+
+                                </div>
+
+
+                                <!-- PREFERRED LOCATION -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Preferred Location <span>*</span>
+                                    </label>
+
+                                    <input type="text" name="preferred_location"
+                                        value="{{ old('preferred_location') }}"
+                                        placeholder="e.g. Quezon City, Pasig, Mandaluyong" required>
+
+                                </div>
+
+
+                                <!-- BUDGET -->
+
+                                <div class="field-row">
+
+                                    <div class="field">
+
+                                        <label>
+                                            Min Budget (₱)
+                                        </label>
+
+                                        <input type="number" name="min_budget" value="{{ old('min_budget') }}"
+                                            placeholder="e.g. 2000" min="0">
+
+                                    </div>
+
+
+                                    <div class="field">
+
+                                        <label>
+                                            Max Budget (₱) <span>*</span>
+                                        </label>
+
+                                        <input type="number" name="max_budget" value="{{ old('max_budget') }}"
+                                            placeholder="e.g. 5000" min="0" required>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ROOM TYPE -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Room Type Preference
+                                    </label>
+
+                                    <select name="room_type">
+
+                                        <option value="anytype">
+                                            Any type
+                                        </option>
+
+                                        <option value="private" {{ old('room_type') == 'private' ? 'selected' : '' }}>
+                                            Private Room
+                                        </option>
+
+                                        <option value="shared" {{ old('room_type') == 'shared' ? 'selected' : '' }}>
+                                            Shared Room
+                                        </option>
+
+                                        <option value="bedspace"
+                                            {{ old('room_type') == 'bedspace' ? 'selected' : '' }}>
+                                            Bed Space
+                                        </option>
+
+                                        <option value="studio" {{ old('room_type') == 'studio' ? 'selected' : '' }}>
+                                            Studio Unit
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- MUST-HAVE AMENITIES -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Must-Have Amenities
+                                    </label>
+
+                                    <div class="amenity-grid">
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="WiFi">
+
+                                            📶 WiFi
+
+                                        </label>
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="Aircon">
+
+                                            ❄️ Aircon
+
+                                        </label>
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="Private CR">
+
+                                            🚿 Private CR
+
+                                        </label>
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="Kitchen">
+
+                                            🍳 Kitchen
+
+                                        </label>
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="Laundry">
+
+                                            🧺 Laundry
+
+                                        </label>
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="CCTV">
+
+                                            🔐 CCTV
+
+                                        </label>
+
+
+                                        <label class="amenity-pill">
+
+                                            <input type="checkbox" name="amenities[]" value="Parking">
+
+                                            🚗 Parking
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- EMERGENCY CONTACT NAME -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Emergency Contact Name <span>*</span>
+                                    </label>
+
+                                    <input type="text" name="emergency_contact_name"
+                                        value="{{ old('emergency_contact_name') }}" placeholder="Full name" required>
+
+                                </div>
+
+
+                                <!-- EMERGENCY CONTACT NUMBER -->
+
+                                <div class="field">
+
+                                    <label>
+                                        Emergency Contact Number <span>*</span>
+                                    </label>
+
+                                    <input type="tel" name="emergency_contact_number"
+                                        value="{{ old('emergency_contact_number') }}" placeholder="+63 9XX XXX XXXX"
+                                        required>
+
+                                </div>
+
+
+                            </div>
+
+
+                            <!-- BUTTONS -->
+
+                            <button type="button" class="btn-back" onclick="goStep(2)">
+                                ← Back
+                            </button>
+
+
+                            <button type="submit" class="btn-full">
+                                Continue →
+                            </button>
+
+                        </form>
+
                     </div>
 
                     <!-- ═══════════════════════════════════════ -->
@@ -450,7 +664,7 @@
                         <!-- LANDLORD SUMMARY -->
                         <!-- ===================================== -->
 
-                        <div id="landlordSummary" class="role-summary">
+                        <div id="landlordSummary" class="role-summary" data-role="landlord" style="display:none;">
 
                             <div class="summary-title">
                                 🏡 Property Information
@@ -523,7 +737,7 @@
                         <!-- TENANT SUMMARY -->
                         <!-- ===================================== -->
 
-                        <div id="tenantSummary" class="role-summary" style="display:none;">
+                        <div id="tenantSummary" class="role-summary" data-role="tenant" style="display:none;">
 
                             <div class="summary-title">
                                 🙋 Tenant Information
@@ -531,73 +745,121 @@
 
                             <div class="summary-card">
 
-                                <div class="summary-row">
-                                    <span>Full Name</span>
-                                    <strong id="summaryFullName">
-                                        {{ session('tenant_full_name', 'Not filled') }}
-                                    </strong>
-                                </div>
+                                <!-- Date of Birth -->
 
                                 <div class="summary-row">
                                     <span>Date of Birth</span>
-                                    <strong id="summaryBirthdate">
-                                        {{ session('tenant_birthdate', 'Not filled') }}
+
+                                    <strong>
+                                        {{ $tenantDetail?->birthday?->format('F d, Y') ?? 'Not filled' }}
                                     </strong>
                                 </div>
+
+
+                                <!-- Gender -->
 
                                 <div class="summary-row">
                                     <span>Gender</span>
-                                    <strong id="summaryGender">
-                                        {{ session('tenant_gender', 'Not filled') }}
+
+                                    <strong>
+                                        {{ $tenantDetail->gender ?? 'Not filled' }}
                                     </strong>
                                 </div>
+
+
+                                <!-- Occupation -->
 
                                 <div class="summary-row">
                                     <span>Occupation / School</span>
-                                    <strong id="summaryOccupation">
-                                        {{ session('tenant_occupation', 'Not filled') }}
+
+                                    <strong>
+                                        {{ $tenantDetail->occupation_or_school ?? 'Not filled' }}
                                     </strong>
                                 </div>
+
+
+                                <!-- Preferred Location -->
 
                                 <div class="summary-row">
                                     <span>Preferred Location</span>
-                                    <strong id="summaryLocation">
-                                        {{ session('tenant_location', 'Not filled') }}
+
+                                    <strong>
+                                        {{ $tenantDetail->preferred_location ?? 'Not filled' }}
                                     </strong>
                                 </div>
+
+
+                                <!-- Budget -->
 
                                 <div class="summary-row">
                                     <span>Budget</span>
-                                    <strong id="summaryBudget">
-                                        {{ session('tenant_budget', 'Not filled') }}
+
+                                    <strong>
+
+                                        @if ($tenantDetail)
+                                            ₱{{ number_format($tenantDetail->min_budget, 2) }}
+                                            -
+                                            ₱{{ number_format($tenantDetail->max_budget, 2) }}
+                                        @else
+                                            Not filled
+                                        @endif
+
                                     </strong>
                                 </div>
+
+
+                                <!-- Room Type -->
 
                                 <div class="summary-row">
                                     <span>Room Type</span>
-                                    <strong id="summaryRoomType">
-                                        {{ session('tenant_room_type', 'Any type') }}
+
+                                    <strong>
+                                        {{ $tenantDetail->room_type_preference ?? 'Any type' }}
                                     </strong>
                                 </div>
+
+
+                                <!-- Amenities -->
+
+                                <div class="summary-row">
+                                    <span>Must-Have Amenities</span>
+
+                                    <strong>
+
+                                        @if ($tenantDetail && !empty($tenantDetail->tenant_wants_amenities))
+                                            {{ implode(', ', $tenantDetail->tenant_wants_amenities) }}
+                                        @else
+                                            None
+                                        @endif
+
+                                    </strong>
+                                </div>
+
+
+                                <!-- Emergency Contact -->
 
                                 <div class="summary-row">
                                     <span>Emergency Contact</span>
-                                    <strong id="summaryEmergency">
-                                        {{ session('tenant_emergency_name', 'Not filled') }}
+
+                                    <strong>
+                                        {{ $tenantDetail->emergency_contact_name ?? 'Not filled' }}
                                     </strong>
                                 </div>
 
+
+                                <!-- Emergency Number -->
+
                                 <div class="summary-row">
                                     <span>Emergency Number</span>
-                                    <strong id="summaryEmergencyNumber">
-                                        {{ session('tenant_emergency_number', 'Not filled') }}
+
+                                    <strong>
+                                        {{ $tenantDetail->emergency_contact_number ?? 'Not filled' }}
                                     </strong>
                                 </div>
 
                             </div>
 
                         </div>
-
 
                         <!-- ===================================== -->
                         <!-- EMAIL VERIFICATION -->
@@ -691,6 +953,10 @@
                         </button>
 
                     </div>
+
+                    <script>
+                        const userRole = @json($role);
+                    </script>
 
                 </div><!-- /form-shell -->
 
@@ -978,6 +1244,93 @@
 
         });
     </script>
-</body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
-</html>
+            const userRole = @json($role);
+
+            const landlordSummary = document.getElementById('landlordSummary');
+            const tenantSummary = document.getElementById('tenantSummary');
+
+            if (userRole === 'landlord') {
+
+                landlordSummary.style.display = 'block';
+                tenantSummary.style.display = 'none';
+
+            } else if (userRole === 'tenant') {
+
+                landlordSummary.style.display = 'none';
+                tenantSummary.style.display = 'block';
+
+            } else {
+
+                landlordSummary.style.display = 'none';
+                tenantSummary.style.display = 'none';
+
+                console.warn('Invalid role:', userRole);
+            }
+
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const landlordSummary = document.getElementById('landlordSummary');
+            const tenantSummary = document.getElementById('tenantSummary');
+
+            // ==========================================
+            // SHOW SUMMARY BASED ON USER ROLE
+            // ==========================================
+
+            function showRoleSummary() {
+
+                // Hide both first
+                if (landlordSummary) {
+                    landlordSummary.style.display = 'none';
+                }
+
+                if (tenantSummary) {
+                    tenantSummary.style.display = 'none';
+                }
+
+                // ======================================
+                // LANDLORD
+                // ======================================
+
+                if (userRole === 'landlord') {
+
+                    if (landlordSummary) {
+                        landlordSummary.style.display = 'block';
+                    }
+
+                }
+
+                // ======================================
+                // TENANT
+                // ======================================
+                else if (userRole === 'tenant') {
+
+                    if (tenantSummary) {
+                        tenantSummary.style.display = 'block';
+                    }
+
+                }
+
+                // ======================================
+                // UNKNOWN ROLE
+                // ======================================
+                else {
+
+                    console.warn('Unknown user role:', userRole);
+
+                }
+            }
+
+            // Run when page loads
+            showRoleSummary();
+
+        }); <
+        /body>
+
+        <
+        /html>

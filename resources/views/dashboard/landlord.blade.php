@@ -11,6 +11,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/landlord.css') }}">
 
+    <!-- Leaflet + OpenStreetMap — free, no API key required -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
         /* =========================================
    logout css
@@ -314,10 +317,8 @@
 
             <div class="property-switch">
                 <label>Property</label>
-                <select id="propertySelect">
-                    <option>Casa Marbella Apartments</option>
-                    <option>Sampaguita Duplex (2 units)</option>
-                </select>
+                <select id="propertySelect"></select>
+                <div class="property-address" id="propertyAddress"></div>
             </div>
 
             <nav class="navlinks">
@@ -363,6 +364,15 @@
                         <path d="M4 5h16v11H9l-5 4V5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
                     </svg>
                     Notices
+                </button>
+                <button class="navlink" data-view="settings">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" />
+                        <path
+                            d="M19.4 13a7.6 7.6 0 0 0 .1-2l2-1.5-2-3.4-2.3.9a7.7 7.7 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7.7 7.7 0 0 0-1.7 1l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9a7.7 7.7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 1.7-1l2.3.9 2-3.4-2-1.5z"
+                            stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                    </svg>
+                    Settings
                 </button>
             </nav>
 
@@ -442,7 +452,7 @@
                             <h2>Units &amp; Tenants</h2>
                             <div class="sub" id="occupancySub"></div>
                         </div>
-                        <input class="search-input" id="tenantSearch" placeholder="Search unit or tenant name…">
+                        <input class="search-input" id="tenantSearch" placeholder="Search unit, tenant or address…">
                     </div>
                     <table>
                         <thead>
@@ -467,7 +477,10 @@
                             <h2>Rent Ledger — August 2026</h2>
                             <div class="sub">Tap a receipt to mark it paid</div>
                         </div>
-                        <button class="btn btn-primary btn-sm" id="recordPaymentBtn">+ Record payment</button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost btn-sm" id="exportCsvBtn">⬇ Export CSV</button>
+                            <button class="btn btn-primary btn-sm" id="recordPaymentBtn">+ Record payment</button>
+                        </div>
                     </div>
                     <div class="ledger-list" id="fullLedger"></div>
                 </section>
@@ -498,6 +511,21 @@
                         <button class="btn btn-primary btn-sm" id="newNoticeBtn">+ Draft notice</button>
                     </div>
                     <div id="noticesList"></div>
+                </section>
+            </div>
+
+            <!-- SETTINGS -->
+            <div class="view" id="view-settings">
+                <section class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Property locations</h2>
+                            <div class="sub">Pin each property on the map — free, powered by OpenStreetMap, no API
+                                key needed</div>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="addLocationBtn">+ Add property location</button>
+                    </div>
+                    <div id="locationsList"></div>
                 </section>
             </div>
 
@@ -622,12 +650,236 @@
         </div>
     </div>
 
+    <!-- Location modal -->
+    <div class="modal-overlay" id="locationModal">
+        <div class="modal" style="max-width:520px;">
+            <h3 id="locModalTitle">Add property location</h3>
+            <div class="modal-sub">Search an address or click the map to drop a pin.</div>
+            <div class="field">
+                <label>Property name</label>
+                <input type="text" id="locName" placeholder="e.g. Casa Marbella Apartments">
+                <input type="hidden" id="locOriginalName">
+            </div>
+            <div class="field">
+                <label>Search address</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="locSearch" placeholder="Search OpenStreetMap…" style="flex:1;">
+                    <button class="btn btn-ghost btn-sm" id="locSearchBtn" type="button">Search</button>
+                </div>
+            </div>
+            <div id="settingsMapContainer"
+                style="height:260px; border-radius:10px; overflow:hidden; border:1px solid var(--line); margin-bottom:14px;">
+            </div>
+            <input type="hidden" id="locLat">
+            <input type="hidden" id="locLng">
+            <div class="field">
+                <label>Address</label>
+                <input type="text" id="locAddress" placeholder="Pin an address above, or type it manually">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" data-close="locationModal">Cancel</button>
+                <button class="btn btn-primary" id="locSave">Save location</button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
 
 
+    <!-- Leaflet + OpenStreetMap — free, no API key required -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         (function() {
+
+            // ---------- Property locations (sample/dummy data) ----------
+            const PROPERTIES = {
+                'Casa Marbella Apartments': {
+                    address: '142 Amang Rodriguez Ave, Brgy. Manggahan, Pasig City, 1611 Metro Manila',
+                    lat: 14.5901,
+                    lng: 121.0897
+                },
+                'Sampaguita Duplex (2 units)': {
+                    address: '27 Sampaguita St, Brgy. Kapitolyo, Pasig City, 1603 Metro Manila',
+                    lat: 14.5657,
+                    lng: 121.0583
+                }
+            };
+
+            function mapLink(address) {
+                return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address);
+            }
+
+            function renderPropertyInfo() {
+                const name = document.getElementById('propertySelect').value;
+                const info = PROPERTIES[name];
+                if (!info) return;
+                document.getElementById('viewEyebrow').textContent = name;
+                document.getElementById('propertyAddress').innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <circle cx="12" cy="9.5" r="2.4" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+      <span>${info.address} · <a href="${mapLink(info.address)}" target="_blank" rel="noopener">View map</a></span>`;
+            }
+            document.getElementById('propertySelect').addEventListener('change', renderPropertyInfo);
+
+            // Rebuild the sidebar property dropdown from PROPERTIES (used at init and after Settings edits)
+            function refreshPropertySelectOptions() {
+                const sel = document.getElementById('propertySelect');
+                const current = sel.value;
+                sel.innerHTML = Object.keys(PROPERTIES).map(n => `<option value="${n}">${n}</option>`).join('');
+                if (PROPERTIES[current]) sel.value = current;
+                renderPropertyInfo();
+            }
+
+            // ---------- Settings: property location manager (Leaflet + OpenStreetMap, free) ----------
+            let settingsMap = null;
+            let settingsMarker = null;
+            const PASIG_CENTER = [14.5764, 121.0851];
+
+            function renderLocationsList() {
+                const names = Object.keys(PROPERTIES);
+                document.getElementById('locationsList').innerHTML = names.length ? names.map(name => {
+                        const info = PROPERTIES[name];
+                        return `
+        <div class="receipt" style="border-style:solid;">
+          <div class="receipt-meta">
+            <div class="who">${name}</div>
+            <div class="what"><a href="${mapLink(info.address)}" target="_blank" rel="noopener">${info.address}</a></div>
+          </div>
+          <div class="receipt-action">
+            <button class="btn btn-ghost btn-sm edit-loc-btn" data-name="${name}">Edit on map</button>
+          </div>
+        </div>`;
+                    }).join('') :
+                    `<div class="empty-state"><div class="em-title">No properties yet</div>Add one to pin it on the map.</div>`;
+
+                document.querySelectorAll('.edit-loc-btn').forEach(btn => {
+                    btn.addEventListener('click', () => openLocationModal(btn.dataset.name));
+                });
+            }
+
+            function initSettingsMap() {
+                if (settingsMap) return;
+                settingsMap = L.map('settingsMapContainer').setView(PASIG_CENTER, 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(settingsMap);
+                settingsMap.on('click', (e) => {
+                    setLocationMarker(e.latlng.lat, e.latlng.lng);
+                    reverseGeocode(e.latlng.lat, e.latlng.lng);
+                });
+            }
+
+            function setLocationMarker(lat, lng) {
+                if (settingsMarker) settingsMap.removeLayer(settingsMarker);
+                settingsMarker = L.marker([lat, lng], {
+                    draggable: true
+                }).addTo(settingsMap);
+                settingsMarker.on('dragend', () => {
+                    const pos = settingsMarker.getLatLng();
+                    document.getElementById('locLat').value = pos.lat.toFixed(6);
+                    document.getElementById('locLng').value = pos.lng.toFixed(6);
+                    reverseGeocode(pos.lat, pos.lng);
+                });
+                document.getElementById('locLat').value = lat.toFixed(6);
+                document.getElementById('locLng').value = lng.toFixed(6);
+            }
+
+            function reverseGeocode(lat, lng) {
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            document.getElementById('locAddress').value = data.display_name;
+                        }
+                    })
+                    .catch(() => {
+                        /* OSM lookup failed — leave the address field editable */
+                    });
+            }
+
+            function searchLocationAddress() {
+                const q = document.getElementById('locSearch').value.trim();
+                if (!q) return;
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data && data[0]) {
+                            const lat = parseFloat(data[0].lat);
+                            const lng = parseFloat(data[0].lon);
+                            settingsMap.setView([lat, lng], 16);
+                            setLocationMarker(lat, lng);
+                            document.getElementById('locAddress').value = data[0].display_name;
+                        } else {
+                            toast('No results found for that address');
+                        }
+                    })
+                    .catch(() => toast('Search failed — check your connection'));
+            }
+
+            function openLocationModal(name) {
+                const info = name ? PROPERTIES[name] : null;
+                document.getElementById('locModalTitle').textContent = name ? 'Edit property location' :
+                    'Add property location';
+                document.getElementById('locName').value = name || '';
+                document.getElementById('locOriginalName').value = name || '';
+                document.getElementById('locAddress').value = info ? info.address : '';
+                document.getElementById('locSearch').value = '';
+                document.getElementById('locLat').value = info ? info.lat : '';
+                document.getElementById('locLng').value = info ? info.lng : '';
+                openModal('locationModal');
+                setTimeout(() => {
+                    initSettingsMap();
+                    if (settingsMarker) {
+                        settingsMap.removeLayer(settingsMarker);
+                        settingsMarker = null;
+                    }
+                    if (info) {
+                        settingsMap.setView([info.lat, info.lng], 16);
+                        setLocationMarker(info.lat, info.lng);
+                    } else {
+                        settingsMap.setView(PASIG_CENTER, 13);
+                    }
+                    settingsMap.invalidateSize();
+                }, 60);
+            }
+
+            document.getElementById('addLocationBtn').addEventListener('click', () => openLocationModal(null));
+            document.getElementById('locSearchBtn').addEventListener('click', searchLocationAddress);
+            document.getElementById('locSearch').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchLocationAddress();
+                }
+            });
+
+            document.getElementById('locSave').addEventListener('click', () => {
+                const name = document.getElementById('locName').value.trim();
+                const address = document.getElementById('locAddress').value.trim();
+                const lat = parseFloat(document.getElementById('locLat').value);
+                const lng = parseFloat(document.getElementById('locLng').value);
+                if (!name || !address || isNaN(lat) || isNaN(lng)) {
+                    toast('Give it a name and drop a pin on the map first');
+                    return;
+                }
+                const originalName = document.getElementById('locOriginalName').value;
+                if (originalName && originalName !== name) {
+                    delete PROPERTIES[originalName];
+                }
+                PROPERTIES[name] = {
+                    address,
+                    lat,
+                    lng
+                };
+                refreshPropertySelectOptions();
+                renderLocationsList();
+                closeModal('locationModal');
+                toast(`Location saved for ${name} ✓`);
+            });
 
             // ---------- Data ----------
             let units = [{
@@ -636,7 +888,8 @@
                     rent: 12000,
                     leaseEnds: '2027-01-31',
                     status: 'paid',
-                    avatar: 'M'
+                    avatar: 'M',
+                    address: 'Casa Marbella Apts, Unit A1, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
                 {
                     id: 'A2',
@@ -644,7 +897,8 @@
                     rent: 11000,
                     leaseEnds: '2026-12-15',
                     status: 'paid',
-                    avatar: 'J'
+                    avatar: 'J',
+                    address: 'Casa Marbella Apts, Unit A2, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
                 {
                     id: 'A3',
@@ -652,7 +906,8 @@
                     rent: 12500,
                     leaseEnds: '2026-09-30',
                     status: 'due',
-                    avatar: 'E'
+                    avatar: 'E',
+                    address: 'Casa Marbella Apts, Unit A3, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
                 {
                     id: 'B1',
@@ -660,7 +915,8 @@
                     rent: 10500,
                     leaseEnds: '2027-03-01',
                     status: 'overdue',
-                    avatar: 'C'
+                    avatar: 'C',
+                    address: 'Casa Marbella Apts, Unit B1, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
                 {
                     id: 'B2',
@@ -668,7 +924,8 @@
                     rent: 13000,
                     leaseEnds: '2026-11-20',
                     status: 'paid',
-                    avatar: 'F'
+                    avatar: 'F',
+                    address: 'Casa Marbella Apts, Unit B2, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
                 {
                     id: 'B3',
@@ -676,7 +933,8 @@
                     rent: 11500,
                     leaseEnds: null,
                     status: 'vacant',
-                    avatar: ''
+                    avatar: '',
+                    address: 'Casa Marbella Apts, Unit B3, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
                 {
                     id: 'C1',
@@ -684,7 +942,8 @@
                     rent: 12000,
                     leaseEnds: '2027-05-10',
                     status: 'overdue',
-                    avatar: 'R'
+                    avatar: 'R',
+                    address: 'Casa Marbella Apts, Unit C1, Amang Rodriguez Ave, Brgy. Manggahan, Pasig City'
                 },
             ];
 
@@ -784,13 +1043,14 @@
             };
 
             // ---------- Nav / views ----------
-            const views = ['overview', 'tenants', 'ledger', 'maintenance', 'notices'];
+            const views = ['overview', 'tenants', 'ledger', 'maintenance', 'notices', 'settings'];
             const titles = {
                 overview: 'Overview',
                 tenants: 'Units & Tenants',
                 ledger: 'Rent Ledger',
                 maintenance: 'Maintenance',
-                notices: 'Notices'
+                notices: 'Notices',
+                settings: 'Settings'
             };
 
             function showView(name) {
@@ -869,6 +1129,11 @@
             function receiptHTML(p, compact) {
                 const statusClass = p.status === 'paid' ? '' : (p.status === 'due' ? 'is-due' : 'is-overdue');
                 const stampText = p.status === 'paid' ? 'PAID' : (p.status === 'due' ? 'DUE' : 'OVERDUE');
+                const actions = p.status !== 'paid' ? `
+        <div class="receipt-action">
+          <button class="btn btn-ghost btn-sm remind-btn" data-unit="${p.unit}">Remind</button>
+          <button class="btn btn-ghost btn-sm mark-paid" data-unit="${p.unit}">Mark paid</button>
+        </div>` : '';
                 return `
       <div class="receipt ${statusClass}" data-unit="${p.unit}">
         <div class="receipt-amt mono">${peso(p.amount)}</div>
@@ -876,7 +1141,7 @@
           <div class="who"><span class="unit-tag">${p.unit}</span> &nbsp;${p.tenant}</div>
           <div class="what">${p.status==='paid' ? 'Received '+formatDate(p.date) : 'Rent due Aug 5, 2026'}</div>
         </div>
-        ${p.status!=='paid' ? `<div class="receipt-action"><button class="btn btn-ghost btn-sm mark-paid" data-unit="${p.unit}">Mark paid</button></div>` : ''}
+        ${actions}
         <div class="stamp">${stampText}</div>
       </div>`;
             }
@@ -905,10 +1170,10 @@
                     '');
                 document.getElementById('overdueBadge').textContent = payments.filter(p => p.status === 'overdue')
                     .length;
-                attachMarkPaid();
+                attachReceiptActions();
             }
 
-            function attachMarkPaid() {
+            function attachReceiptActions() {
                 document.querySelectorAll('.mark-paid').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -926,6 +1191,27 @@
                         toast(`Marked ${unitId} as paid ✓`);
                     });
                 });
+                document.querySelectorAll('.remind-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openReminderFor(btn.dataset.unit);
+                    });
+                });
+            }
+
+            function openReminderFor(unitId) {
+                populateTenantSelects();
+                const u = units.find(x => x.id === unitId);
+                const p = payments.find(x => x.unit === unitId);
+                if (!u) return;
+                document.getElementById('ntTenant').value = unitId;
+                const overdue = p && p.status === 'overdue';
+                document.getElementById('ntSubject').value = overdue ?
+                    `Rent reminder — overdue for ${u.id}` :
+                    `Rent reminder — due Aug 5, 2026`;
+                document.getElementById('ntMessage').value =
+                    `Hi ${u.tenant}, just a friendly reminder that rent for ${u.id} (${peso(u.rent)}) is ${overdue ? 'now overdue' : 'due soon'}. Please let me know once it's settled. Thank you!`;
+                openModal('noticeModal');
             }
 
             // ---------- Tenants ----------
@@ -933,13 +1219,18 @@
                 const q = (filter || '').toLowerCase();
                 const rows = units.filter(u => {
                     if (!q) return true;
-                    return u.id.toLowerCase().includes(q) || (u.tenant || '').toLowerCase().includes(q);
+                    return u.id.toLowerCase().includes(q) ||
+                        (u.tenant || '').toLowerCase().includes(q) ||
+                        (u.address || '').toLowerCase().includes(q);
                 });
                 document.getElementById('tenantsBody').innerHTML = rows.map(u => {
                         if (u.status === 'vacant') {
                             return `<tr class="tenant-row">
           <td data-label="Unit"><span class="unit-tag">${u.id}</span></td>
-          <td data-label="Tenant" colspan="1" style="color:var(--ink-soft);">— vacant —</td>
+          <td data-label="Tenant" colspan="1" style="color:var(--ink-soft);">
+            — vacant —
+            <div class="addr-note"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>${u.address}</div>
+          </td>
           <td data-label="Rent" class="mono">${peso(u.rent)}</td>
           <td data-label="Lease ends">—</td>
           <td data-label="Status"><span class="status-pill vacant">Vacant</span></td>
@@ -950,7 +1241,10 @@
         <td data-label="Tenant">
           <div class="name-cell">
             <div class="avatar-sm">${u.avatar}</div>
-            <div>${u.tenant}<div class="lease-note">Lease ends ${formatDate(u.leaseEnds)}</div></div>
+            <div>${u.tenant}
+              <div class="lease-note">Lease ends ${formatDate(u.leaseEnds)}</div>
+              <div class="addr-note"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>${u.address}</div>
+            </div>
           </div>
         </td>
         <td data-label="Rent" class="mono">${peso(u.rent)}</td>
@@ -958,7 +1252,7 @@
         <td data-label="Status"><span class="status-pill ${u.status}">${u.status.charAt(0).toUpperCase()+u.status.slice(1)}</span></td>
       </tr>`;
                     }).join('') ||
-                    `<tr><td colspan="5"><div class="empty-state"><div class="em-title">No matches</div>Try a different unit or name.</div></td></tr>`;
+                    `<tr><td colspan="5"><div class="empty-state"><div class="em-title">No matches</div>Try a different unit, name or address.</div></td></tr>`;
 
                 const occ = units.filter(u => u.status !== 'vacant').length;
                 document.getElementById('occupancySub').textContent = `${occ} of ${units.length} units occupied`;
@@ -989,13 +1283,13 @@
                     return `<div>
         <div class="kcol-head"><span class="dot" style="background:${c.color}"></span>${c.label} (${items.length})</div>
         ${items.map(m=>`
-                                                                                                                  <div class="kcard" draggable="true" data-id="${m.id}">
-                                                                                                                    <div class="ktitle">${m.desc}</div>
-                                                                                                                    <div class="kmeta">
-                                                                                                                      <span class="unit-tag" style="font-size:10.5px;padding:2px 7px;">${m.unit}</span>
-                                                                                                                      <span class="priority ${m.priority}">${m.priority}</span>
-                                                                                                                    </div>
-                                                                                                                  </div>`).join('') || `<div class="empty-state" style="padding:16px 8px;font-size:12.5px;">Nothing here</div>`}
+                                                                                                                                  <div class="kcard" draggable="true" data-id="${m.id}">
+                                                                                                                                    <div class="ktitle">${m.desc}</div>
+                                                                                                                                    <div class="kmeta">
+                                                                                                                                      <span class="unit-tag" style="font-size:10.5px;padding:2px 7px;">${m.unit}</span>
+                                                                                                                                      <span class="priority ${m.priority}">${m.priority}</span>
+                                                                                                                                    </div>
+                                                                                                                                  </div>`).join('') || `<div class="empty-state" style="padding:16px 8px;font-size:12.5px;">Nothing here</div>`}
       </div>`;
                 }).join('');
 
@@ -1156,7 +1450,42 @@
                 toast('Notice saved ✓');
             });
 
+            // ---------- Export CSV ----------
+            document.getElementById('exportCsvBtn').addEventListener('click', () => {
+                const rows = [
+                    ['Unit', 'Tenant', 'Amount (PHP)', 'Status', 'Date received', 'Address']
+                ];
+                payments.forEach(p => {
+                    const u = units.find(x => x.id === p.unit);
+                    rows.push([
+                        p.unit,
+                        p.tenant || '',
+                        p.amount,
+                        p.status,
+                        p.date || '',
+                        (u && u.address) || ''
+                    ]);
+                });
+                const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join(
+                    '\n');
+                const blob = new Blob([csv], {
+                    type: 'text/csv;charset=utf-8;'
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download =
+                    `ledger-${document.getElementById('monthSelect').value.replace(' ', '-').toLowerCase()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                toast('Ledger exported ✓');
+            });
+
             // ---------- Init ----------
+            refreshPropertySelectOptions();
+            renderLocationsList();
             renderStats();
             renderLedger();
             renderTenants();

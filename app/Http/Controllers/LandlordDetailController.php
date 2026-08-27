@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\LandlordDetail;
+use App\Models\TenantDetail;
+use App\Models\Account;
 use Illuminate\Http\Request;
 
 class LandlordDetailController extends Controller
@@ -76,23 +78,46 @@ public function show()
 {
     $accountId = session('account_id');
 
+    // Get account role
+    $account = Account::find($accountId);
+
+    // Get landlord details
     $landlordDetail = LandlordDetail::where('account_id', $accountId)->first();
 
+    // Get tenant details
+    $tenantDetail = TenantDetail::where('account_id', $accountId)->first();
+
+    // ========================================
+    // DECRYPT LANDLORD INFORMATION
+    // ========================================
+
     if ($landlordDetail) {
+
         try {
-            $landlordDetail->property_name = decrypt($landlordDetail->property_name);
+            $landlordDetail->property_name = decrypt(
+                $landlordDetail->property_name
+            );
         } catch (\Exception $e) {
-            // already plain text
+            // Keep original value
         }
 
         try {
-            $landlordDetail->full_address = decrypt($landlordDetail->full_address);
+            $landlordDetail->full_address = decrypt(
+                $landlordDetail->full_address
+            );
         } catch (\Exception $e) {
-            // already plain text
+            // Keep original value
         }
     }
 
-    return view('get-started', compact('landlordDetail'));
+    // Get role
+    $role = $account?->role;
+
+    return view('get-started', compact(
+        'landlordDetail',
+        'tenantDetail',
+        'role'
+    ));
 }
     /**
      * Show the form for editing the specified resource.
