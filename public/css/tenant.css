@@ -1143,3 +1143,219 @@ input:focus-visible {
         transition: none !important;
     }
 }
+
+/* 1) MODALS — must sit above Leaflet's internal panes (~z-index 650) */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+/* Cap every Leaflet map to its own low stacking context so it
+           can never paint on top of a modal, dropdown, or sidebar. */
+.room-map,
+.leaflet-container,
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 0 !important;
+}
+
+.room-map {
+    position: relative;
+    isolation: isolate;
+    /* creates a fresh stacking context that can't escape */
+}
+
+/* 2) PAGE NAVIGATION — only the active section should render.
+           Without `display:none` on inactive pages, the previously
+           shown page can remain painted underneath the new one. */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+    animation: pageFadeIn 0.15s ease;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* 3) GRIDS — stop long cell content (transaction IDs, amounts)
+           from blowing out columns, and stop the shorter column from
+           stretching/overlapping the taller one. */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+    gap: 1.5rem;
+}
+
+.grid-2 > div {
+    min-width: 0;
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    min-width: 0;
+}
+
+.browse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+table td,
+table th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 4) STICKY NAV — keep the topbar and sidebar fixed in place while
+           only the dashboard content (.main) scrolls underneath them. */
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    /* the page itself no longer scrolls */
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.shell {
+    display: flex;
+    align-items: flex-start;
+    height: calc(100vh - var(--topbar-height, 64px));
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: calc(100vh - var(--topbar-height, 64px));
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.main {
+    flex: 1;
+    height: calc(100vh - var(--topbar-height, 64px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* On mobile the sidebar becomes an overlay drawer (per your JS
+           toggling .open), so let it go back to fixed positioning there. */
+@media (max-width: 860px) {
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        top: var(--topbar-height, 64px);
+        height: calc(100vh - var(--topbar-height, 64px));
+        transition: left 0.2s ease;
+        z-index: 200;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+}
+
+/* 5) HIDE SCROLLBARS — scrolling still works, the bar itself
+           just isn't drawn. Applied to both scrolling regions. */
+.main,
+.sidebar {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* old Edge/IE */
+}
+
+.main::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Edge (Chromium) */
+}
+
+/* 6) MAINTENANCE — reports are clickable to open their details modal */
+.maint-item[data-open-modal] {
+    cursor: pointer;
+}
+
+.section-desc {
+    margin: -0.25rem 0 1rem;
+    font-size: 0.85rem;
+    opacity: 0.65;
+    line-height: 1.4;
+}
+
+/* 7) EMPTY STATES — reuses the same look as .empty-maintenance so
+           new accounts feel intentional/designed, not broken. */
+.empty-state-cta {
+    margin-top: 0.9rem;
+}
+
+.badge-count[hidden] {
+    display: none;
+}
+
+.btn-primary[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 8) SAMPLE DATA BANNER — shown on Browse Rooms only while
+           $availableApartments is empty, so it's obvious these are
+           placeholder listings and not real data from the database. */
+.sample-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: color-mix(in srgb, var(--accent3, #f5a623) 15%, transparent);
+    border: 1px solid
+        color-mix(in srgb, var(--accent3, #f5a623) 40%, transparent);
+    color: var(--accent3, #f5a623);
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+.sample-banner .sb-icon {
+    font-size: 1.1rem;
+}

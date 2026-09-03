@@ -57,6 +57,6 @@ Route::post('/request-maintenance', [App\Http\Controllers\MaintenanceRequestCont
     ->middleware('auth')
     ->name('request-maintenance.store');
 
-    Route::post('/logout', [App\Http\Controllers\AccountController::class, 'logout'])
+Route::post('/logout', [App\Http\Controllers\AccountController::class, 'logout'])
     ->middleware('auth')
     ->name('logout.store');
