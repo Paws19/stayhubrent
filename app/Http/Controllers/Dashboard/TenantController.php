@@ -34,6 +34,8 @@ class TenantController extends Controller
         ->get();
 
     $hasRoom = AssignApartmentModel::where('account_id', $accountId)->exists();
+
+    
     
 
     return view('dashboard.tenant', compact('pendingRequests', 'resolvedRequests', 'GetFirstName', 'paymentHistory', 'hasRoom'));

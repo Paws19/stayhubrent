@@ -32,8 +32,76 @@
                 </div>
             </div>
 
+            @if ($landlordProperty)
+                @php
+                    // Same labels used on the sign-up form's Property Type dropdown.
+$propertyTypeLabels = [
+    'boarding_house' => 'Boarding House',
+    'apartment' => 'Apartment',
+    'dormitory' => 'Dormitory',
+    'bedspace' => 'Bed Space',
+    'studio_unit' => 'Studio Unit',
+                    ];
+                    $propertyTypeLabel =
+                        $propertyTypeLabels[$landlordProperty->property_type] ?? $landlordProperty->property_type;
+                @endphp
+                <div class="sidebar-property-card"
+                    style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; margin:0 0 14px;">
+                    <div
+                        style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px;">
+                        <div
+                            style="font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:700;">
+                            🏠 Your Registered Property</div>
+                        <button type="button" id="sidebarRegToggle" aria-expanded="true" aria-controls="sidebarRegBody"
+                            style="display:flex; align-items:center; gap:0; flex-shrink:0; background:none; border:none; padding:2px; cursor:pointer; color:var(--ink-soft);">
+                            <svg id="sidebarRegToggleIcon" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" style="transition:transform .2s ease;">
+                                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="sidebarRegBody">
+                        <div style="font-weight:700; font-size:15.5px; line-height:1.25;">
+                            {{ $landlordProperty->property_name }}</div>
+                        @if ($propertyTypeLabel)
+                            <div style="font-size:13px; color:var(--ink-soft); margin:2px 0 8px;">
+                                {{ $propertyTypeLabel }}</div>
+                        @endif
+                        <div style="display:flex; flex-wrap:wrap; gap:6px 10px; font-size:12.5px; color:var(--ink);">
+                            @if ($landlordProperty->number_of_floors)
+                                <span>🏢 {{ $landlordProperty->number_of_floors }}
+                                    floor{{ $landlordProperty->number_of_floors > 1 ? 's' : '' }}</span>
+                            @endif
+                            @if ($landlordProperty->number_of_rooms)
+                                <span>🚪 {{ $landlordProperty->number_of_rooms }}
+                                    room{{ $landlordProperty->number_of_rooms > 1 ? 's' : '' }}</span>
+                            @endif
+                            @if ($landlordProperty->bed_per_room)
+                                <span>🛏️ {{ $landlordProperty->bed_per_room }}
+                                    bed{{ $landlordProperty->bed_per_room > 1 ? 's' : '' }}/room</span>
+                            @endif
+                            @if ($landlordProperty->monthly_rent)
+                                <span>₱{{ number_format($landlordProperty->monthly_rent) }}/mo</span>
+                            @endif
+                        </div>
+                        @if ($landlordProperty->full_address)
+                            <div style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">
+                                📍 {{ $landlordProperty->full_address }}</div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="helper-banner">👋 New here? Start with <strong>Overview</strong> — it shows everything at a
                 glance.</div>
+
+            @if (session('justRegistered'))
+                <div class="helper-banner" style="background:var(--gold-tint, #FBF0DA); margin-top:8px;">
+                    🎉 Welcome, {{ auth()->user()->email ?? 'landlord' }}! The property you filled in during
+                    sign-up is already saved below in <strong>My Properties</strong> — no need to re-enter it.
+                </div>
+            @endif
 
             <nav class="navlinks">
                 <button class="navlink active" data-view="overview">
@@ -166,6 +234,137 @@
                     </div>
                     <div id="overviewMaint"></div>
                 </div>
+
+                @if ($landlordProperty)
+                    @php
+                        // Same labels used on the sign-up form's Property Type dropdown.
+$regTypeLabels = [
+    'boarding_house' => 'Boarding House',
+    'apartment' => 'Apartment',
+    'dormitory' => 'Dormitory',
+    'bedspace' => 'Bed Space',
+    'studio_unit' => 'Studio Unit',
+];
+$regTypeLabel =
+    $regTypeLabels[$landlordProperty->property_type] ?? $landlordProperty->property_type;
+$regAmenities = is_array($landlordProperty->amenities)
+    ? $landlordProperty->amenities
+    : (json_decode($landlordProperty->amenities ?? '[]', true) ?:
+                            []);
+                    @endphp
+                    <div class="panel" id="regPanel">
+                        <div class="panel-head">
+                            <div>
+                                <h2>👋 Welcome, {{ $landlordProperty->property_name }}!</h2>
+                                <div class="panel-sub">Here's a copy of the property details you entered when you
+                                    signed up — just to confirm everything was saved correctly.</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button class="btn btn-ghost btn-sm" data-goto="properties">Edit in My
+                                    Properties</button>
+                                <button type="button" id="regPanelToggle" class="btn btn-ghost btn-sm"
+                                    aria-expanded="true" aria-controls="regPanelBody"
+                                    style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                    <svg id="regPanelToggleIcon" width="14" height="14" viewBox="0 0 24 24"
+                                        fill="none" style="transition:transform .2s ease;">
+                                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <span id="regPanelToggleLabel">Minimize</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="regPanelBody">
+                            <div
+                                style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+                                <div>
+                                    <div
+                                        style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                        Property name</div>
+                                    <div style="font-size:15px; font-weight:600;">
+                                        {{ $landlordProperty->property_name }}</div>
+                                </div>
+                                @if ($regTypeLabel)
+                                    <div>
+                                        <div
+                                            style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                            Property type</div>
+                                        <div style="font-size:15px;">{{ $regTypeLabel }}</div>
+                                    </div>
+                                @endif
+                                @if ($landlordProperty->full_address)
+                                    <div>
+                                        <div
+                                            style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                            Address</div>
+                                        <div style="font-size:15px;">📍 {{ $landlordProperty->full_address }}</div>
+                                    </div>
+                                @endif
+                                @if ($landlordProperty->number_of_floors)
+                                    <div>
+                                        <div
+                                            style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                            Number of floors</div>
+                                        <div style="font-size:15px;">{{ $landlordProperty->number_of_floors }}</div>
+                                    </div>
+                                @endif
+                                @if ($landlordProperty->number_of_rooms)
+                                    <div>
+                                        <div
+                                            style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                            Number of rooms</div>
+                                        <div style="font-size:15px;">{{ $landlordProperty->number_of_rooms }}</div>
+                                    </div>
+                                @endif
+                                @if ($landlordProperty->bed_per_room)
+                                    <div>
+                                        <div
+                                            style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                            Beds per room</div>
+                                        <div style="font-size:15px;">{{ $landlordProperty->bed_per_room }}</div>
+                                    </div>
+                                @endif
+                                @if ($landlordProperty->monthly_rent)
+                                    <div>
+                                        <div
+                                            style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:3px;">
+                                            Monthly rent</div>
+                                        <div style="font-size:15px;">
+                                            ₱{{ number_format($landlordProperty->monthly_rent) }}</div>
+                                    </div>
+                                @endif
+                            </div>
+                            @if (!empty($regAmenities))
+                                <div style="margin-top:16px;">
+                                    <div
+                                        style="font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:6px;">
+                                        Amenities</div>
+                                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                        @foreach ($regAmenities as $amenity)
+                                            <span class="avail-pill">{{ $amenity }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            @if ($landlordProperty->house_rules)
+                                <div style="margin-top:16px;">
+                                    <div
+                                        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:3px;">
+                                        <div style="font-size:12px; color:var(--ink-soft); font-weight:600;">
+                                            Description / House rules</div>
+                                        <button type="button" id="houseRulesToggle"
+                                            style="background:none; border:none; padding:0; font-size:12.5px; font-weight:600; color:var(--ink); cursor:pointer; text-decoration:underline;">
+                                            Show more
+                                        </button>
+                                    </div>
+                                    <div id="houseRulesText"
+                                        style="font-size:14px; color:var(--ink); white-space:pre-line; max-height:4.2em; overflow:hidden; position:relative; transition:max-height .25s ease;">
+                                        {{ $landlordProperty->house_rules }}</div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- ===================== PROPERTIES ===================== -->
@@ -462,6 +661,59 @@
                     longitude: 121.0453
                 },
             ];
+
+            // ---------------------------------------------------------------------
+            // PROPERTY FROM REGISTRATION (Step 3 of sign-up — "Property Details").
+            // Your controller should pass the record the landlord just filled in,
+            // e.g.  return view('landlord.dashboard', [
+            //           'landlordProperty' => $landlord->properties()->latest()->first(),
+            //       ]);
+            // If nothing is passed (e.g. an existing landlord with no fresh
+            // registration), this stays null and nothing changes below.
+            // ---------------------------------------------------------------------
+            const landlordRegisteredProperty = @json($landlordProperty ?? null);
+
+            // Friendlier labels for the property_type select from the sign-up form.
+            const PROPERTY_TYPE_LABELS = {
+                boarding_house: 'Boarding House',
+                apartment: 'Apartment',
+                dormitory: 'Dormitory',
+                bedspace: 'Bed Space',
+                studio_unit: 'Studio Unit'
+            };
+
+            if (landlordRegisteredProperty) {
+                const reg = landlordRegisteredProperty;
+                const bedsPerRoom = Number(reg.bed_per_room) || 1;
+                const totalRooms = Number(reg.number_of_rooms) || 1;
+                const totalBeds = bedsPerRoom * totalRooms;
+
+                properties.unshift({
+                    id: 'reg-' + (reg.id || Date.now()),
+                    room_name: totalRooms > 1 ? `All ${totalRooms} Rooms` : 'Room 1',
+                    property_name: reg.property_name,
+                    address: reg.full_address,
+                    monthly_rent: Number(reg.monthly_rent) || 0,
+                    // Brand-new listing, so every bed still starts out open.
+                    available_beds: totalBeds,
+                    bed_capacity: totalBeds,
+                    amenities: Array.isArray(reg.amenities) ? reg.amenities.join(', ') : (reg.amenities || '—'),
+                    photo: reg.photo ||
+                        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=700&q=60',
+                    latitude: reg.latitude || null,
+                    longitude: reg.longitude || null,
+                    // Extra details only the registration form captures — the quick
+                    // Add/Edit Apartment modal doesn't ask for these, so they're kept
+                    // here purely for display on this property's card.
+                    property_type: reg.property_type ?
+                        (PROPERTY_TYPE_LABELS[reg.property_type] || reg.property_type) : null,
+                    number_of_floors: reg.number_of_floors || null,
+                    number_of_rooms: reg.number_of_rooms || null,
+                    bed_per_room: reg.bed_per_room || null,
+                    house_rules: reg.house_rules || null,
+                    fromRegistration: true
+                });
+            }
 
             let units = [{
                     id: 'A1',
@@ -760,16 +1012,30 @@
                     `You have ${properties.length} apartment${properties.length===1?'':'s'} listed.`;
                 document.getElementById('propertyGrid').innerHTML = properties.length ? properties.map(p => {
                         const openBeds = p.available_beds > 0;
+                        // Extra line for details only the sign-up form collects (property type,
+                        // floors, rooms, house rules). Sample/quick-add properties simply won't
+                        // have these fields, so this stays blank for them — nothing else changes.
+                        const regDetails = [
+                            p.property_type,
+                            p.number_of_floors ? `${p.number_of_floors} floor${p.number_of_floors>1?'s':''}` :
+                            null,
+                            p.number_of_rooms ? `${p.number_of_rooms} room${p.number_of_rooms>1?'s':''}` : null,
+                            p.bed_per_room ? `${p.bed_per_room} bed${p.bed_per_room>1?'s':''}/room` : null,
+                        ].filter(Boolean).join(' · ');
+
                         return `<div class="property-card">
         <div class="property-photo" style="background-image:url('${p.photo || ''}')">${p.photo ? '' : '🏠'}</div>
         <div class="property-body">
           <h3>${p.room_name} — ${p.property_name}</h3>
+          ${p.fromRegistration ? `<span class="avail-pill" style="margin-bottom:6px; display:inline-block;">📝 From your sign-up</span>` : ''}
           <div class="property-addr">📍 ${p.address}</div>
+          ${regDetails ? `<div style="font-size:13.5px; color:var(--ink-soft); margin-top:2px;">${regDetails}</div>` : ''}
           <div class="property-meta">
             <span class="property-price">${peso(p.monthly_rent)}<span style="font-size:13px; font-weight:400; color:var(--ink-soft);">/mo</span></span>
             <span class="avail-pill ${openBeds?'':'full'}">${openBeds ? p.available_beds + ' bed' + (p.available_beds>1?'s':'') + ' open' : 'Fully booked'}</span>
           </div>
           <div style="font-size:13.5px; color:var(--ink-soft);">${p.amenities || '—'}</div>
+          ${p.house_rules ? `<div style="font-size:13px; color:var(--ink-soft); margin-top:6px;"><strong>House rules:</strong> ${p.house_rules}</div>` : ''}
           ${p.latitude ? `<a href="https://www.openstreetmap.org/?mlat=${p.latitude}&mlon=${p.longitude}#map=17/${p.latitude}/${p.longitude}" target="_blank" rel="noopener" style="display:inline-block; margin-top:8px; font-size:13.5px; font-weight:600;">📍 View on map ↗</a>` : ''}
           <button type="button" class="btn btn-ghost btn-sm edit-property-btn" data-id="${p.id}" style="width:100%; margin-top:12px;">✏️ Edit This Apartment</button>
         </div>
@@ -1288,6 +1554,103 @@
                 document.getElementById('mmUnit').innerHTML = units.map(u =>
                     `<option value="${u.id}">${u.id}${u.tenant?' — '+u.tenant:' — vacant'}</option>`).join('');
             }
+
+            // ---------------- Sidebar registered-property card: minimize / expand ----------------
+            (function setupSidebarRegToggle() {
+                const toggleBtn = document.getElementById('sidebarRegToggle');
+                const body = document.getElementById('sidebarRegBody');
+                const icon = document.getElementById('sidebarRegToggleIcon');
+                if (!toggleBtn || !body) return; // card only exists when a landlordProperty was passed in
+
+                const STORAGE_KEY = 'sidebarRegPanelCollapsed';
+
+                function setCollapsed(collapsed) {
+                    body.style.display = collapsed ? 'none' : '';
+                    if (icon) icon.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+                    toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+                    toggleBtn.title = collapsed ? 'Expand' : 'Minimize';
+                    try {
+                        localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+                    } catch (e) {
+                        /* private-browsing or storage disabled — just skip remembering it */
+                    }
+                }
+
+                let startCollapsed = false;
+                try {
+                    startCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
+                } catch (e) {}
+                setCollapsed(startCollapsed);
+
+                toggleBtn.addEventListener('click', () => {
+                    const isCollapsed = body.style.display === 'none';
+                    setCollapsed(!isCollapsed);
+                });
+            })();
+
+            // ---------------- Registered-property panel: minimize / expand ----------------
+            (function setupRegPanelToggle() {
+                const toggleBtn = document.getElementById('regPanelToggle');
+                const body = document.getElementById('regPanelBody');
+                const icon = document.getElementById('regPanelToggleIcon');
+                const label = document.getElementById('regPanelToggleLabel');
+                if (!toggleBtn || !body) return; // panel only exists when a landlordProperty was passed in
+
+                const STORAGE_KEY = 'regPanelCollapsed';
+
+                function setCollapsed(collapsed) {
+                    body.style.display = collapsed ? 'none' : '';
+                    if (icon) icon.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+                    if (label) label.textContent = collapsed ? 'Expand' : 'Minimize';
+                    toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+                    try {
+                        localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+                    } catch (e) {
+                        /* private-browsing or storage disabled — just skip remembering it */
+                    }
+                }
+
+                let startCollapsed = false;
+                try {
+                    startCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
+                } catch (e) {}
+                setCollapsed(startCollapsed);
+
+                toggleBtn.addEventListener('click', () => {
+                    const isCollapsed = body.style.display === 'none';
+                    setCollapsed(!isCollapsed);
+                });
+            })();
+
+            // ---------------- Registered-property panel: "Show more" for a long description ----------------
+            (function setupHouseRulesToggle() {
+                const toggleBtn = document.getElementById('houseRulesToggle');
+                const text = document.getElementById('houseRulesText');
+                if (!toggleBtn || !text) return; // only exists when house_rules was filled in
+
+                let expanded = false;
+
+                function refreshVisibility() {
+                    // If the whole panel is minimized, text.scrollHeight reads as 0 —
+                    // skip the check in that case rather than wrongly hiding the button.
+                    const panelBody = document.getElementById('regPanelBody');
+                    const panelHidden = panelBody && panelBody.style.display === 'none';
+                    if (panelHidden || expanded) return;
+                    toggleBtn.style.display = (text.scrollHeight > text.clientHeight + 2) ? '' : 'none';
+                }
+
+                toggleBtn.addEventListener('click', () => {
+                    expanded = !expanded;
+                    text.style.maxHeight = expanded ? text.scrollHeight + 'px' : '4.2em';
+                    toggleBtn.textContent = expanded ? 'Show less' : 'Show more';
+                });
+
+                // Check once after layout settles, and again whenever the outer panel
+                // gets expanded (its content isn't measurable while hidden).
+                setTimeout(refreshVisibility, 0);
+                const outerToggle = document.getElementById('regPanelToggle');
+                if (outerToggle) outerToggle.addEventListener('click', () => setTimeout(refreshVisibility, 0));
+            })();
 
             // ---------------- Init ----------------
             renderStats();
