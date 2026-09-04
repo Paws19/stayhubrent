@@ -14,35 +14,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     {{--
-        EXPECTED VARIABLES FROM CONTROLLER (e.g. TenantDashboardController):
-
-        $GetFirstName         - helper/object with ->first_name
-        $hasRoom              - bool. True only when the tenant has a row in
-                                 tenant_assign_apartment with status = 'active'.
-                                 This single flag drives every empty state below.
-        $currentAssignment    - the active tenant_assign_apartment row (with an
-                                 ->apartment relation to landlord_details), or null
-                                 when $hasRoom is false. move_in_date / move_out_date
-                                 / status live on THIS row (per your migration) —
-                                 everything else (rent, amenities, address, beds,
-                                 lat/lng) lives on ->apartment.
-        $paymentHistory       - Collection of payment records (empty for new tenants)
-        $currentPayment       - this month's payment row, or null
-        $pendingRequests      - Collection of maintenance requests still open
-        $resolvedRequests     - Collection of resolved maintenance requests
-        $notifications        - Collection of notifications (message, is_read, created_at)
-        $availableApartments  - Collection of landlord_details rows open for booking
-
-        A brand-new account naturally has $hasRoom = false and empty collections for
-        everything else — no extra flags needed, the views below already render a
-        friendly empty state in that case instead of dummy/fake data.
-
-        NOTE: field names on $apartment (room_number, property_name, address,
-        landlord_name, monthly_rent, occupied_beds, bed_capacity, amenities,
-        latitude, longitude) are my best guess at your landlord_details columns —
-        rename them below to match your actual schema.
+        The rules below are scoped to Browse Rooms (plus the small bits it shares,
+        like .btn-ghost.sm and .empty-maintenance on small screens). They're added
+        here rather than edited into tenant.css directly since that file's current
+        contents weren't available — feel free to move this block into tenant.css
+        and delete it from here once you do.
     --}}
-
 
 </head>
 
@@ -53,74 +30,101 @@
         // use a different "read" flag name, adjust `is_read` below.
         $unreadNotifications = ($notifications ?? collect())->where('is_read', false)->count();
 
-        // ── SAMPLE/DUMMY DATA FOR BROWSE ROOMS ──
-        // While you don't have real $availableApartments yet, this renders
-// a handful of placeholder listings so the page has something to
-// look at and click through. As soon as the controller passes a
-// non-empty $availableApartments collection, this block is skipped
-// entirely and your real data takes over automatically.
-//
-// DELETE this whole @php block (and the "Sample listings" banner
-// in the Browse Rooms section below) once real data is wired up.
-$isSampleApartments = ($availableApartments ?? collect())->isEmpty();
+        // Reservation requests the tenant has sent from Browse Rooms. Pass a
+        // $reservations collection from the controller (each with room_name,
+        // move_in_date, occupants, message, status, created_at) once it's
+// wired up — this defaults to empty so a new account just sees the
+// "No reservations yet" empty state.
+$pendingReservationsCount = ($reservations ?? collect())->where('status', 'pending')->count();
 
-if ($isSampleApartments) {
-    $availableApartments = collect([
-        (object) [
-            'id' => 'sample-1',
-            'room_name' => 'Room 204 — Sunview Residences',
-            'property_name' => 'Sunview Residences',
-            'address' => '123 Kalayaan Ave, Mandaluyong City',
-            'city' => 'Mandaluyong City',
-            'landlord_name' => 'Maria Santos',
-            'monthly_rent' => 4500,
-            'available_beds' => 1,
-            'bed_capacity' => 2,
-            'amenities' => 'WiFi, Aircon, Shared Kitchen',
-            'latitude' => 14.5794,
-            'longitude' => 121.0359,
-        ],
-        (object) [
-            'id' => 'sample-2',
-            'room_name' => 'Room 12 — The Hub Dormitel',
-            'property_name' => 'The Hub Dormitel',
-            'address' => '45 Boni Ave, Mandaluyong City',
-            'city' => 'Mandaluyong City',
-            'landlord_name' => 'Carlo Reyes',
-            'monthly_rent' => 2800,
-            'available_beds' => 3,
-            'bed_capacity' => 4,
-            'amenities' => 'WiFi, CR, Laundry Area',
-            'latitude' => 14.5764,
-            'longitude' => 121.041,
-        ],
-        (object) [
-            'id' => 'sample-3',
-            'room_name' => 'Studio A — Greenview Suites',
-            'property_name' => 'Greenview Suites',
-            'address' => '78 Shaw Blvd, Mandaluyong City',
-            'city' => 'Mandaluyong City',
-            'landlord_name' => 'Ana Dela Cruz',
-            'monthly_rent' => 6200,
-            'available_beds' => 1,
-            'bed_capacity' => 1,
-            'amenities' => 'WiFi, Aircon, Private CR, Kitchenette',
-            'latitude' => 14.5822,
-            'longitude' => 121.0453,
-        ],
-        (object) [
-            'id' => 'sample-4',
-            'room_name' => 'Room 7 — Casa Rosario',
-            'property_name' => 'Casa Rosario',
-            'address' => '9 Pioneer St, Mandaluyong City',
-            'city' => 'Mandaluyong City',
-            'landlord_name' => 'Jun Villanueva',
-            'monthly_rent' => 3200,
-            'available_beds' => 2,
-            'bed_capacity' => 3,
-            'amenities' => 'WiFi, Fan, Shared Kitchen',
-            'latitude' => 14.5763,
-            'longitude' => 121.0498,
+// ── SAMPLE/DUMMY DATA FOR BROWSE ──
+// While you don't have real $availableApartments yet, this renders
+        // a handful of placeholder listings so the page has something to
+        // look at and click through. As soon as the controller passes a
+        // non-empty $availableApartments collection, this block is skipped
+        // entirely and your real data takes over automatically.
+        //
+        // DELETE this whole sample-data setup block above (and the "Sample listings"
+        // banner in the Browse Rooms section below) once real data is wired up.
+        $isSampleApartments = ($availableApartments ?? collect())->isEmpty();
+
+        if ($isSampleApartments) {
+            $availableApartments = collect([
+                (object) [
+                    'id' => 'sample-1',
+                    'room_name' => 'Room 204 — Sunview Residences',
+                    'property_name' => 'Sunview Residences',
+                    'address' => '123 Kalayaan Ave, Mandaluyong City',
+                    'city' => 'Mandaluyong City',
+                    'landlord_name' => 'Maria Santos',
+                    'monthly_rent' => 4500,
+                    'available_beds' => 1,
+                    'bed_capacity' => 2,
+                    'amenities' => 'WiFi, Aircon, Shared Kitchen',
+                    'latitude' => 14.5794,
+                    'longitude' => 121.0359,
+                    'photos' => [
+                        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&w=700&q=60',
+                    ],
+                ],
+                (object) [
+                    'id' => 'sample-2',
+                    'room_name' => 'Room 12 — The Hub Dormitel',
+                    'property_name' => 'The Hub Dormitel',
+                    'address' => '45 Boni Ave, Mandaluyong City',
+                    'city' => 'Mandaluyong City',
+                    'landlord_name' => 'Carlo Reyes',
+                    'monthly_rent' => 2800,
+                    'available_beds' => 3,
+                    'bed_capacity' => 4,
+                    'amenities' => 'WiFi, CR, Laundry Area',
+                    'latitude' => 14.5764,
+                    'longitude' => 121.041,
+                    'photos' => [
+                        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=700&q=60',
+                    ],
+                ],
+                (object) [
+                    'id' => 'sample-3',
+                    'room_name' => 'Studio A — Greenview Suites',
+                    'property_name' => 'Greenview Suites',
+                    'address' => '78 Shaw Blvd, Mandaluyong City',
+                    'city' => 'Mandaluyong City',
+                    'landlord_name' => 'Ana Dela Cruz',
+                    'monthly_rent' => 6200,
+                    'available_beds' => 1,
+                    'bed_capacity' => 1,
+                    'amenities' => 'WiFi, Aircon, Private CR, Kitchenette',
+                    'latitude' => 14.5822,
+                    'longitude' => 121.0453,
+                    'photos' => [
+                        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1560185008-a33f5c1a0edc?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=700&q=60',
+                    ],
+                ],
+                (object) [
+                    'id' => 'sample-4',
+                    'room_name' => 'Room 7 — Casa Rosario',
+                    'property_name' => 'Casa Rosario',
+                    'address' => '9 Pioneer St, Mandaluyong City',
+                    'city' => 'Mandaluyong City',
+                    'landlord_name' => 'Jun Villanueva',
+                    'monthly_rent' => 3200,
+                    'available_beds' => 2,
+                    'bed_capacity' => 3,
+                    'amenities' => 'WiFi, Fan, Shared Kitchen',
+                    'latitude' => 14.5763,
+                    'longitude' => 121.0498,
+                    'photos' => [
+                        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=700&q=60',
+                        'https://images.unsplash.com/photo-1505873242700-f289a29e1e0f?auto=format&fit=crop&w=700&q=60',
+                    ],
                 ],
             ]);
         }
@@ -154,6 +158,9 @@ if ($isSampleApartments) {
             <p class="side-label">Overview</p>
             <button class="side-link active" data-page="dashboard"><span class="si">🏠</span>Dashboard</button>
             <button class="side-link" data-page="browse"><span class="si">🔍</span>Browse Rooms</button>
+            <button class="side-link" data-page="reservations"><span class="si">📄</span>My Reservations
+                <span class="badge-count" id="reservationBadge"
+                    @if ($pendingReservationsCount === 0) hidden @endif>{{ $pendingReservationsCount }}</span></button>
             @if ($hasRoom)
                 <p class="side-label">My Stay</p>
                 <button class="side-link" data-page="payments"><span class="si">💳</span>Payments</button>
@@ -376,9 +383,16 @@ if ($isSampleApartments) {
             <section class="page" id="page-browse">
                 <div class="page-head">
                     <div>
-                        <h1>Browse Rooms</h1>
-                        <p>Looking to move or refer a friend? See what's open right now.</p>
+                        <h1>Browse Rooms 🏡</h1>
+                        <p>Looking for a new place, or want to refer a friend? Take a look at what's open right now —
+                            we're happy to help you find a good fit.</p>
                     </div>
+                </div>
+
+                <div class="browse-intro">
+                    <span class="bi-emoji">😊</span>
+                    <span>Every room here is ready to welcome someone new. Tap a card for the full details, or just say
+                        hi to the landlord with a reservation request!</span>
                 </div>
 
                 @if ($isSampleApartments)
@@ -390,10 +404,16 @@ if ($isSampleApartments) {
                 @endif
 
                 <div class="search-row">
-                    <input type="text" placeholder="Search by location or property name…" id="browseSearch" />
-                    <button class="filter-chip active" data-filter="all">All</button>
-                    <button class="filter-chip" data-filter="under3000">Under ₱3,000</button>
-                    <button class="filter-chip" data-filter="nearme">Near me</button>
+                    <div class="search-box">
+                        <span class="search-icon">🔎</span>
+                        <input type="text" placeholder="Search by location or property name…" id="browseSearch" />
+                    </div>
+                    <div class="filter-chips">
+                        <button class="filter-chip active" data-filter="all">All rooms</button>
+                        <button class="filter-chip" data-filter="under3000">Under ₱3,000</button>
+                        <button class="filter-chip" data-filter="hasbed">Beds available</button>
+                        <button class="filter-chip" data-filter="nearme">Near me</button>
+                    </div>
                 </div>
 
                 <div class="browse-grid" id="browseGrid">
@@ -405,16 +425,38 @@ if ($isSampleApartments) {
                             data-landlord="Landlord: {{ $apartment->landlord_name ?? '—' }}"
                             data-price="₱{{ number_format($apartment->monthly_rent ?? 0, 0) }}/mo"
                             data-price-raw="{{ $apartment->monthly_rent ?? 0 }}"
+                            data-beds-open="{{ $apartment->available_beds ?? 0 }}"
                             data-availability="{{ $apartment->available_beds ?? '?' }} of {{ $apartment->bed_capacity ?? '?' }} beds open"
                             data-amenities="{{ $apartment->amenities ?? '—' }}"
                             data-lat="{{ $apartment->latitude ?? '' }}" data-lng="{{ $apartment->longitude ?? '' }}"
-                            data-location="{{ $apartment->city ?? ($apartment->address ?? '') }}">
-                            <div class="browse-thumb">🏠</div>
+                            data-location="{{ $apartment->city ?? ($apartment->address ?? '') }}"
+                            data-photos="{{ json_encode($apartment->photos ?? []) }}">
+                            <div class="browse-thumb">
+                                @if (!empty($apartment->photos[0]))
+                                    <img src="{{ $apartment->photos[0] }}"
+                                        alt="Photo of {{ $apartment->room_name ?? 'the room' }}" loading="lazy" />
+                                @else
+                                    <span class="no-photo-emoji">🏠</span>
+                                @endif
+                                @if (($apartment->available_beds ?? 0) > 0)
+                                    <span class="thumb-tag">😊 {{ $apartment->available_beds }}
+                                        bed{{ $apartment->available_beds > 1 ? 's' : '' }} open</span>
+                                @else
+                                    <span class="thumb-tag full">Full for now</span>
+                                @endif
+                            </div>
                             <div class="browse-body">
                                 <h5>{{ $apartment->room_name ?? 'Room ' . $apartment->id }}</h5>
-                                <div class="loc">{{ $apartment->city ?? ($apartment->address ?? '') }}</div>
-                                <div class="price">₱{{ number_format($apartment->monthly_rent ?? 0, 0) }}
-                                    <span>/mo</span>
+                                <div class="loc">📍 {{ $apartment->city ?? ($apartment->address ?? '') }}</div>
+                                <div class="amenity-tags">
+                                    @foreach (array_slice(array_filter(array_map('trim', explode(',', $apartment->amenities ?? ''))), 0, 3) as $tag)
+                                        <span class="tag">{{ $tag }}</span>
+                                    @endforeach
+                                </div>
+                                <div class="browse-foot">
+                                    <div class="price">
+                                        ₱{{ number_format($apartment->monthly_rent ?? 0, 0) }}<span>/mo</span></div>
+                                    <button type="button" class="btn-ghost sm">Say hi 👋</button>
                                 </div>
                             </div>
                         </div>
@@ -428,26 +470,70 @@ if ($isSampleApartments) {
                 </div>
             </section>
 
-            <!-- PAGE: PAYMENTS -->
-            <section class="page" id="page-payments">
+            <!-- PAGE: MY RESERVATIONS — reservation requests the tenant has sent
+                 from Browse Rooms, with their current status. -->
+            <section class="page" id="page-reservations">
                 <div class="page-head">
                     <div>
-                        <h1>Payments</h1>
-                        <p>Track what's due and confirm your GCash payments.</p>
+                        <h1>My Reservations</h1>
+                        <p>Track the rooms you've asked to reserve and their status.</p>
                     </div>
                 </div>
 
-                @if (!$hasRoom)
-                    <div class="card">
-                        <div class="empty-maintenance">
-                            <div class="empty-icon">🏠</div>
-                            <h5>No room assigned yet</h5>
-                            <p>Your payment schedule and history will appear here as soon as you're assigned to a room.
-                                In the meantime, feel free to browse what's available.</p>
-                            <button class="btn-primary empty-state-cta" data-page-link="browse">Browse Rooms</button>
+                <div class="card">
+                    <div class="card-head">
+                        <h3>Requests</h3>
+                    </div>
+                    <p class="section-desc">A room stays "Pending" until the landlord accepts or declines it.</p>
+                    <div id="reservationsList">
+                        @forelse ($reservations ?? [] as $reservation)
+                            <div class="maint-item">
+                                <div class="maint-icon">📄</div>
+                                <div class="maint-info">
+                                    <h5>{{ $reservation->room_name ?? 'Room' }}</h5>
+                                    <p>
+                                        Requested
+                                        {{ isset($reservation->created_at) ? $reservation->created_at->format('M j, Y') : '' }}
+                                        @if (!empty($reservation->move_in_date))
+                                            · Move-in
+                                            {{ \Carbon\Carbon::parse($reservation->move_in_date)->format('M j, Y') }}
+                                        @endif
+                                        @if (!empty($reservation->occupants))
+                                            · {{ $reservation->occupants }}
+                                            occupant{{ $reservation->occupants > 1 ? 's' : '' }}
+                                        @endif
+                                    </p>
+                                </div>
+                                <span
+                                    class="badge badge-{{ ($reservation->status ?? 'pending') === 'approved' ? 'green' : (($reservation->status ?? 'pending') === 'declined' ? 'red' : 'yellow') }}">
+                                    {{ ucfirst($reservation->status ?? 'Pending') }}
+                                </span>
+                            </div>
+                        @empty
+                            <div class="empty-maintenance" id="reservationsEmpty">
+                                <div class="empty-icon">📄</div>
+                                <h5>No reservations yet</h5>
+                                <p>Once you send a reservation request from Browse Rooms, it'll show up here as
+                                    "Pending" until the landlord responds.</p>
+                                <button class="btn-primary empty-state-cta" data-page-link="browse">Browse
+                                    Available Rooms</button>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
+
+            <!-- PAGE: PAYMENTS — only rendered at all once the tenant has a room, so a
+                 new account never even has this in the DOM (not just hidden in the nav). -->
+            @if ($hasRoom)
+                <section class="page" id="page-payments">
+                    <div class="page-head">
+                        <div>
+                            <h1>Payments</h1>
+                            <p>Track what's due and confirm your GCash payments.</p>
                         </div>
                     </div>
-                @else
+
                     <div class="grid-2">
                         <div>
                             <div class="card">
@@ -571,94 +657,87 @@ if ($isSampleApartments) {
                             </div>
                         </div>
                     </div>
-                @endif
-            </section>
+                </section>
+            @endif
 
-            <!-- PAGE: MAINTENANCE -->
-            <section class="page" id="page-maintenance">
-                <div class="page-head">
-                    <div>
-                        <h1>Maintenance</h1>
-                        <p>Report an issue in your room or shared spaces.</p>
-                    </div>
-                    @if ($hasRoom)
+            <!-- PAGE: MAINTENANCE — only rendered at all once the tenant has a room. -->
+            @if ($hasRoom)
+                <section class="page" id="page-maintenance">
+                    <div class="page-head">
+                        <div>
+                            <h1>Maintenance</h1>
+                            <p>Report an issue in your room or shared spaces.</p>
+                        </div>
                         <button class="btn-primary" data-open-modal="requestModal"> + New Request </button>
-                    @else
-                        <button class="btn-primary" disabled title="You need an assigned room first"> + New Request
-                        </button>
-                    @endif
-                </div>
-
-                @if (!$hasRoom)
-                    <p class="section-desc">You'll be able to submit maintenance requests once you're assigned a room.
-                    </p>
-                @endif
-
-                <!-- ONGOING -->
-                <div class="card">
-                    <div class="card-head">
-                        <h3>Ongoing</h3>
                     </div>
-                    <p class="section-desc">Reports currently pending or assigned to the maintenance team. Tap
-                        a report to see its full details.</p>
-                    @if ($pendingRequests->count() > 0)
-                        @foreach ($pendingRequests as $request)
-                            <div class="maint-item" data-open-modal="maintenanceDetailsModal"
-                                data-maint-title="{{ ucfirst($request->request_title) }}"
-                                data-maint-description="{{ $request->request_description ?? 'No description provided.' }}"
-                                data-maint-status="{{ ucfirst($request->request_status) }}"
-                                data-maint-status-class="badge-yellow"
-                                data-maint-filed="Filed {{ $request->created_at->format('M j, Y') }}"
-                                data-maint-note="Assigned to maintenance team"
-                                data-maint-image="{{ $request->request_image ? asset('storage/' . $request->request_image) : '' }}">
-                                <div class="maint-icon">🔧</div>
-                                <div class="maint-info">
-                                    <h5> {{ ucfirst($request->request_title) }} </h5>
-                                    <p> Filed {{ $request->created_at->format('M j, Y') }} · Assigned to maintenance
-                                        team </p>
-                                </div> <span class="badge badge-yellow"> {{ ucfirst($request->request_status) }}
-                                </span>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="empty-maintenance">
-                            <div class="empty-icon">🔧</div>
-                            <h5>No maintenance requests</h5>
-                            <p> You don't have any pending maintenance requests. </p>
+
+                    <!-- ONGOING -->
+                    <div class="card">
+                        <div class="card-head">
+                            <h3>Ongoing</h3>
                         </div>
-                    @endif
-                </div> <!-- RESOLVED -->
-                <div class="card">
-                    <div class="card-head">
-                        <h3>Resolved</h3>
+                        <p class="section-desc">Reports currently pending or assigned to the maintenance team. Tap
+                            a report to see its full details.</p>
+                        @if ($pendingRequests->count() > 0)
+                            @foreach ($pendingRequests as $request)
+                                <div class="maint-item" data-open-modal="maintenanceDetailsModal"
+                                    data-maint-title="{{ ucfirst($request->request_title) }}"
+                                    data-maint-description="{{ $request->request_description ?? 'No description provided.' }}"
+                                    data-maint-status="{{ ucfirst($request->request_status) }}"
+                                    data-maint-status-class="badge-yellow"
+                                    data-maint-filed="Filed {{ $request->created_at->format('M j, Y') }}"
+                                    data-maint-note="Assigned to maintenance team"
+                                    data-maint-image="{{ $request->request_image ? asset('storage/' . $request->request_image) : '' }}">
+                                    <div class="maint-icon">🔧</div>
+                                    <div class="maint-info">
+                                        <h5> {{ ucfirst($request->request_title) }} </h5>
+                                        <p> Filed {{ $request->created_at->format('M j, Y') }} · Assigned to
+                                            maintenance
+                                            team </p>
+                                    </div> <span class="badge badge-yellow"> {{ ucfirst($request->request_status) }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-maintenance">
+                                <div class="empty-icon">🔧</div>
+                                <h5>No maintenance requests</h5>
+                                <p> You don't have any pending maintenance requests. </p>
+                            </div>
+                        @endif
+                    </div> <!-- RESOLVED -->
+                    <div class="card">
+                        <div class="card-head">
+                            <h3>Resolved</h3>
+                        </div>
+                        <p class="section-desc">Reports the maintenance team has already fixed. Tap a report to
+                            review what was filed.</p>
+                        @if ($resolvedRequests->count() > 0)
+                            @foreach ($resolvedRequests as $request)
+                                <div class="maint-item" data-open-modal="maintenanceDetailsModal"
+                                    data-maint-title="{{ ucfirst($request->request_title) }}"
+                                    data-maint-description="{{ $request->request_description ?? 'No description provided.' }}"
+                                    data-maint-status="Resolved" data-maint-status-class="badge-green"
+                                    data-maint-filed="Filed {{ $request->created_at->format('M j, Y') }}"
+                                    data-maint-note="{{ $request->updated_at ? 'Resolved ' . $request->updated_at->format('M j, Y') : 'Resolved' }}"
+                                    data-maint-image="{{ $request->request_image ? asset('storage/' . $request->request_image) : '' }}">
+                                    <div class="maint-icon">💡</div>
+                                    <div class="maint-info">
+                                        <h5> {{ ucfirst($request->request_title) }} </h5>
+                                        <p> Filed {{ $request->created_at->format('M j, Y') }} · Resolved </p>
+                                    </div> <span class="badge badge-green"> Resolved </span>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-maintenance">
+                                <div class="empty-icon"></div>
+                                <h5>No resolved requests</h5>
+                                <p> You don't have any resolved maintenance requests yet. </p>
+                            </div>
+                        @endif
                     </div>
-                    <p class="section-desc">Reports the maintenance team has already fixed. Tap a report to
-                        review what was filed.</p>
-                    @if ($resolvedRequests->count() > 0)
-                        @foreach ($resolvedRequests as $request)
-                            <div class="maint-item" data-open-modal="maintenanceDetailsModal"
-                                data-maint-title="{{ ucfirst($request->request_title) }}"
-                                data-maint-description="{{ $request->request_description ?? 'No description provided.' }}"
-                                data-maint-status="Resolved" data-maint-status-class="badge-green"
-                                data-maint-filed="Filed {{ $request->created_at->format('M j, Y') }}"
-                                data-maint-note="{{ $request->updated_at ? 'Resolved ' . $request->updated_at->format('M j, Y') : 'Resolved' }}"
-                                data-maint-image="{{ $request->request_image ? asset('storage/' . $request->request_image) : '' }}">
-                                <div class="maint-icon">💡</div>
-                                <div class="maint-info">
-                                    <h5> {{ ucfirst($request->request_title) }} </h5>
-                                    <p> Filed {{ $request->created_at->format('M j, Y') }} · Resolved </p>
-                                </div> <span class="badge badge-green"> Resolved </span>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="empty-maintenance">
-                            <div class="empty-icon"></div>
-                            <h5>No resolved requests</h5>
-                            <p> You don't have any resolved maintenance requests yet. </p>
-                        </div>
-                    @endif
-                </div>
-            </section>
+                </section>
+            @endif
 
             <!-- PAGE: NOTIFICATIONS -->
             <section class="page" id="page-notifications">
@@ -887,7 +966,7 @@ if ($isSampleApartments) {
                 <button class="modal-close" data-close-modal="roomDetailsModal">✕</button>
             </div>
             <div class="room-hero">
-                <div class="room-thumb">🏠</div>
+                <div class="room-thumb" id="rdThumb">🏠</div>
                 <div class="room-info">
                     <h4 id="rdProperty"></h4>
                     <p id="rdAddress"></p>
@@ -895,6 +974,7 @@ if ($isSampleApartments) {
                     <span class="badge badge-blue" id="rdPrice"></span>
                 </div>
             </div>
+            <div class="gallery-strip" id="rdGallery"></div>
             <div class="detail-list" id="rdDetails"></div>
             <div class="room-map" id="rdMap"></div>
             <a href="#" id="rdDirectionsLink" target="_blank" rel="noopener" class="map-link">Get directions
@@ -903,6 +983,73 @@ if ($isSampleApartments) {
                 <button class="btn-ghost" data-close-modal="roomDetailsModal">Close</button>
                 <button class="btn-primary" id="rdReserveBtn">Send Reservation Request</button>
             </div>
+        </div>
+    </div>
+
+    <!-- RESERVATION REQUEST FORM MODAL — opens from "Send Reservation Request"
+         in the Room Details modal. A quick form (rather than a single instant
+         click) so the landlord actually gets something to review. -->
+    <div class="modal-overlay" id="reservationFormModal">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>Request to Reserve — <span id="rfRoomName">this room</span></h3>
+                <button type="button" class="modal-close" data-close-modal="reservationFormModal">✕</button>
+            </div>
+            <form id="reservationForm">
+                <div class="form-group">
+                    <label for="rfMoveInDate">Preferred move-in date</label>
+                    <input type="date" id="rfMoveInDate" required />
+                </div>
+                <div class="form-group">
+                    <label for="rfOccupants">Number of occupants</label>
+                    <input type="number" id="rfOccupants" min="1" value="1" required />
+                </div>
+                <div class="form-group">
+                    <label for="rfMessage">Message to the landlord (optional)</label>
+                    <textarea id="rfMessage" maxlength="500"
+                        placeholder="e.g. Hi! I'm a working student looking to move in early next month..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-ghost" data-close-modal="reservationFormModal">Cancel</button>
+                    <button type="submit" class="btn-primary" id="rfSubmitBtn">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RESERVATION SENT / THANK YOU MODAL — pops up right after a tenant
+         submits the reservation form above. -->
+    <div class="modal-overlay" id="reservationThanksModal">
+        <div class="modal-card centered">
+            <div class="thanks-icon">🎉</div>
+            <h3>Thank you!</h3>
+            <div class="thanks-body">
+                <p>Your reservation request for <strong id="rtRoomName">this room</strong> has been sent.</p>
+                <p>The landlord will review it and get back to you soon — we'll notify you here once there's an
+                    update.</p>
+            </div>
+            <div class="modal-footer" style="justify-content:center;">
+                <button type="button" class="btn-primary" data-close-modal="reservationThanksModal">Got it,
+                    thanks!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHOTO LIGHTBOX MODAL — full-size, zoomable viewer for room photos.
+         Opened from the main photo or gallery thumbnails in Room Details. -->
+    <div class="modal-overlay" id="photoLightboxModal">
+        <div class="modal-card lightbox">
+            <div class="lightbox-topbar">
+                <span class="lightbox-counter" id="lightboxCounter"></span>
+                <button type="button" class="lightbox-close" data-close-modal="photoLightboxModal"
+                    aria-label="Close">✕</button>
+            </div>
+            <div class="lightbox-stage">
+                <button type="button" class="lightbox-nav" id="lightboxPrev" aria-label="Previous photo">‹</button>
+                <img id="lightboxImg" src="" alt="Room photo" />
+                <button type="button" class="lightbox-nav" id="lightboxNext" aria-label="Next photo">›</button>
+            </div>
+            <span class="lightbox-hint">Tap the photo to zoom in</span>
         </div>
     </div>
 
@@ -940,15 +1087,6 @@ if ($isSampleApartments) {
     <!-- Leaflet + OpenStreetMap — free, no API key required -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        /* ───────────────────────────────────────────
-                                           NOTE FOR BACKEND INTEGRATION:
-                                           Every dummy alert/toast below is marked so you
-                                           can swap it for a real fetch()/axios call once
-                                           your endpoints are ready. Nothing here talks to
-                                           a server yet — except the logout form, which
-                                           already posts to {{ route('logout.store') }}.
-                                        ─────────────────────────────────────────── */
-
         // Theme toggle
         const toggle = document.getElementById('themeToggle');
         const icon = document.getElementById('themeIcon');
@@ -970,10 +1108,6 @@ if ($isSampleApartments) {
         }
 
         // ── ROOM LOCATION MAP (Leaflet + OpenStreetMap) ──
-        // Only renders when the tenant actually has an assigned room AND
-        // that room has coordinates saved. Guards against missing lat/lng
-        // so a newly-assigned apartment without coordinates yet won't
-        // throw a Leaflet error.
         let roomMap;
         const roomMapEl = document.getElementById('roomMap');
         if (roomMapEl) {
@@ -996,8 +1130,6 @@ if ($isSampleApartments) {
         }
 
         // ── PAGE NAVIGATION ──
-        // Clicking a sidebar link swaps which <section class="page"> is
-        // shown in the main panel — no more scrolling to an anchor.
         function goToPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.side-link[data-page]').forEach(l => l.classList.remove('active'));
@@ -1014,7 +1146,6 @@ if ($isSampleApartments) {
                 behavior: 'smooth'
             });
             closeSidebar();
-            // Leaflet needs a nudge to redraw correctly after being hidden
             if (pageId === 'dashboard' && roomMap) setTimeout(() => roomMap.invalidateSize(), 200);
         }
 
@@ -1022,13 +1153,10 @@ if ($isSampleApartments) {
             link.addEventListener('click', () => goToPage(link.dataset.page));
         });
 
-        // Any element with data-page-link acts as an in-app shortcut too
-        // (e.g. "Full history" inside a dashboard card jumps to Payments)
         document.querySelectorAll('[data-page-link]').forEach(el => {
             el.addEventListener('click', () => goToPage(el.dataset.pageLink));
         });
 
-        // Bell icon + user chip act as nav shortcuts
         document.getElementById('bellBtn').addEventListener('click', () => goToPage('notifications'));
         document.getElementById('userChip').addEventListener('click', () => goToPage('profile'));
 
@@ -1067,13 +1195,11 @@ if ($isSampleApartments) {
         document.querySelectorAll('[data-close-modal]').forEach(btn => {
             btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
         });
-        // Click on the dark backdrop closes whichever modal it belongs to
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) closeModal(overlay.id);
             });
         });
-        // Esc closes any open modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id));
@@ -1081,8 +1207,6 @@ if ($isSampleApartments) {
         });
 
         // ── GENERIC DRAG & DROP HELPER ──
-        // Wires up a dropzone + hidden file input + a "file chip" preview.
-        // Works for both the payment receipt and the maintenance photo.
         function setupDropzone({
             zoneId,
             inputId,
@@ -1097,10 +1221,6 @@ if ($isSampleApartments) {
             const nameEl = document.getElementById(nameId);
             const removeBtn = document.getElementById(removeId);
 
-            // Bail out quietly if this dropzone isn't on the current page
-            // (e.g. the receipt dropzone only renders when a payment is
-            // assigned) — one missing element must never break the rest
-            // of the script.
             if (!zone || !input || !chip || !nameEl || !removeBtn) return;
 
             function acceptFile(file) {
@@ -1150,7 +1270,6 @@ if ($isSampleApartments) {
             removeId: 'photoRemove'
         });
 
-        // Only exists when a payment has been assigned by the landlord
         const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
         if (confirmPaymentBtn) {
             confirmPaymentBtn.addEventListener('click', () => {
@@ -1181,8 +1300,6 @@ if ($isSampleApartments) {
             });
         });
 
-        // Payment history rows (skip the "no payments yet" placeholder row,
-        // which has no data-month)
         document.querySelectorAll('#paymentHistoryBody tr').forEach(row => {
             if (!row.dataset.month) return;
             row.addEventListener('click', () => {
@@ -1190,7 +1307,6 @@ if ($isSampleApartments) {
             });
         });
 
-        // Notification items — click to mark read
         document.querySelectorAll('[data-mark-read]').forEach(item => {
             item.addEventListener('click', () => item.classList.add('read'));
         });
@@ -1203,11 +1319,40 @@ if ($isSampleApartments) {
         }
 
         // ── BROWSE ROOMS ──
-        // Room Details modal now reads straight from the clicked card's
-        // data-* attributes (set server-side from $availableApartments in
-        // the Blade template above) instead of a hardcoded JS object —
-        // so it always reflects real listings.
         let rdMap, rdMarker;
+        let lbPhotos = [];
+        let lbIndex = 0;
+
+        function renderLightbox() {
+            const img = document.getElementById('lightboxImg');
+            img.src = lbPhotos[lbIndex] || '';
+            img.classList.remove('zoomed');
+            document.getElementById('lightboxCounter').textContent =
+                lbPhotos.length ? `${lbIndex + 1} / ${lbPhotos.length}` : '';
+            const showNav = lbPhotos.length > 1;
+            document.getElementById('lightboxPrev').style.display = showNav ? '' : 'none';
+            document.getElementById('lightboxNext').style.display = showNav ? '' : 'none';
+        }
+
+        function openLightbox(photos, startIndex) {
+            if (!photos || !photos.length) return;
+            lbPhotos = photos;
+            lbIndex = startIndex || 0;
+            renderLightbox();
+            openModal('photoLightboxModal');
+        }
+
+        document.getElementById('lightboxPrev').addEventListener('click', () => {
+            lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length;
+            renderLightbox();
+        });
+        document.getElementById('lightboxNext').addEventListener('click', () => {
+            lbIndex = (lbIndex + 1) % lbPhotos.length;
+            renderLightbox();
+        });
+        document.getElementById('lightboxImg').addEventListener('click', (e) => {
+            e.target.classList.toggle('zoomed');
+        });
 
         function openRoomDetails(card) {
             const d = card.dataset;
@@ -1217,6 +1362,50 @@ if ($isSampleApartments) {
             document.getElementById('rdAddress').textContent = d.address || '';
             document.getElementById('rdLandlord').textContent = d.landlord || '';
             document.getElementById('rdPrice').textContent = d.price || '';
+
+            let photos = [];
+            try {
+                photos = d.photos ? JSON.parse(d.photos) : [];
+            } catch (err) {
+                photos = [];
+            }
+
+            const rdThumb = document.getElementById('rdThumb');
+            const rdGallery = document.getElementById('rdGallery');
+            let rdActiveIndex = 0;
+
+            function setMainPhoto(url, index) {
+                rdActiveIndex = index ?? 0;
+                if (url) {
+                    rdThumb.innerHTML =
+                        `<img src="${url}" alt="Photo of ${d.name || 'the room'}" /><span class="zoom-hint">🔍 Zoom</span>`;
+                } else {
+                    rdThumb.innerHTML = '🏠';
+                }
+                rdGallery.querySelectorAll('img').forEach((img, i) => {
+                    img.classList.toggle('active', i === rdActiveIndex);
+                });
+            }
+
+            rdThumb.onclick = () => {
+                if (photos.length) openLightbox(photos, rdActiveIndex);
+            };
+
+            if (photos.length) {
+                setMainPhoto(photos[0], 0);
+                rdGallery.innerHTML = photos.map((url, i) =>
+                    `<img src="${url}" alt="Photo ${i + 1} of ${d.name || 'the room'}" class="${i === 0 ? 'active' : ''}" />`
+                ).join('');
+                rdGallery.querySelectorAll('img').forEach((img, i) => {
+                    img.addEventListener('click', () => setMainPhoto(photos[i], i));
+                });
+                rdGallery.style.display = photos.length > 1 ? '' : 'none';
+            } else {
+                setMainPhoto(null, 0);
+                rdGallery.innerHTML = '';
+                rdGallery.style.display = 'none';
+            }
+
             document.getElementById('rdDetails').innerHTML = `
                 <div class="detail-row"><span>Availability</span><span>${d.availability || '—'}</span></div>
                 <div class="detail-row"><span>Amenities</span><span>${d.amenities || '—'}</span></div>
@@ -1242,7 +1431,6 @@ if ($isSampleApartments) {
             directionsLink.href =
                 `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
 
-            // Leaflet needs the modal visible before it can measure the map container
             setTimeout(() => {
                 if (!rdMap) {
                     rdMap = L.map('rdMap', {
@@ -1270,16 +1458,75 @@ if ($isSampleApartments) {
         const rdReserveBtn = document.getElementById('rdReserveBtn');
         if (rdReserveBtn) {
             rdReserveBtn.addEventListener('click', () => {
-                showToast(
-                    `Dummy action: sends a reservation request for "${rdReserveBtn.dataset.roomName}" to the landlord for review.`
-                );
+                const roomName = rdReserveBtn.dataset.roomName || 'this room';
                 closeModal('roomDetailsModal');
+                document.getElementById('rfRoomName').textContent = roomName;
+                document.getElementById('reservationForm').dataset.roomName = roomName;
+                openModal('reservationFormModal');
             });
         }
 
-        // Search box — filters browse cards by name, property, or location
+        const reservationForm = document.getElementById('reservationForm');
+        if (reservationForm) {
+            reservationForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const roomName = reservationForm.dataset.roomName || 'this room';
+                const moveInDate = document.getElementById('rfMoveInDate').value;
+                const occupants = document.getElementById('rfOccupants').value;
+                // Dummy action: this is where the move-in date, occupant count,
+                // and message would be POSTed to the reservation-request route.
+                addPendingReservation(roomName, moveInDate, occupants);
+                closeModal('reservationFormModal');
+                reservationForm.reset();
+                document.getElementById('rtRoomName').textContent = roomName;
+                openModal('reservationThanksModal');
+            });
+        }
+
+        // ── MY RESERVATIONS — adds a "Pending" entry right after a tenant
+        // submits the reservation form, and bumps the sidebar badge count.
+        function addPendingReservation(roomName, moveInDate, occupants) {
+            const list = document.getElementById('reservationsList');
+            const emptyState = document.getElementById('reservationsEmpty');
+            if (emptyState) emptyState.remove();
+
+            const today = new Date().toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            const moveInLabel = moveInDate ? new Date(moveInDate + 'T00:00:00').toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            }) : '';
+            const occupantsLabel = occupants ? `${occupants} occupant${occupants > 1 ? 's' : ''}` : '';
+            const metaParts = [`Requested ${today}`];
+            if (moveInLabel) metaParts.push(`Move-in ${moveInLabel}`);
+            if (occupantsLabel) metaParts.push(occupantsLabel);
+
+            const item = document.createElement('div');
+            item.className = 'maint-item';
+            item.innerHTML = `
+                <div class="maint-icon">📄</div>
+                <div class="maint-info">
+                    <h5></h5>
+                    <p></p>
+                </div>
+                <span class="badge badge-yellow">Pending</span>
+            `;
+            item.querySelector('h5').textContent = roomName;
+            item.querySelector('p').textContent = metaParts.join(' · ');
+            list.prepend(item);
+
+            const badge = document.getElementById('reservationBadge');
+            const newCount = (parseInt(badge.textContent, 10) || 0) + 1;
+            badge.textContent = newCount;
+            badge.hidden = false;
+        }
+
         const browseSearchInput = document.getElementById('browseSearch');
-        let activePriceFilter = 'all';
+        let activeBrowseFilter = 'all';
 
         function getBrowseCards() {
             return Array.from(document.querySelectorAll('#browseGrid .browse-card'));
@@ -1294,8 +1541,10 @@ if ($isSampleApartments) {
                     (d.location || '').toLowerCase().includes(query) ||
                     (d.property || '').toLowerCase().includes(query);
                 const price = parseFloat(d.priceRaw || '0');
-                const matchesPrice = activePriceFilter !== 'under3000' || price < 3000;
-                card.style.display = (matchesQuery && matchesPrice) ? '' : 'none';
+                const bedsOpen = parseInt(d.bedsOpen || '0', 10);
+                const matchesPrice = activeBrowseFilter !== 'under3000' || price < 3000;
+                const matchesBeds = activeBrowseFilter !== 'hasbed' || bedsOpen > 0;
+                card.style.display = (matchesQuery && matchesPrice && matchesBeds) ? '' : 'none';
             });
         }
 
@@ -1303,35 +1552,25 @@ if ($isSampleApartments) {
             browseSearchInput.addEventListener('input', applyBrowseFilters);
         }
 
-        // Browse filter chips
         document.querySelectorAll('.filter-chip').forEach(chip => {
             chip.addEventListener('click', () => {
-                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-
                 const filter = chip.dataset.filter;
                 if (filter === 'nearme') {
-                    // No geolocation wired up yet — surfaced as a dummy
-                    // action like everything else, keeps "All" filtering active
                     showToast(
                         'Dummy action: this would sort rooms by distance from your current location.');
-                    activePriceFilter = 'all';
-                } else {
-                    activePriceFilter = filter;
+                    return;
                 }
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                activeBrowseFilter = filter;
                 applyBrowseFilters();
             });
         });
 
-        // Save profile
         document.getElementById('saveProfileBtn').addEventListener('click', () => {
             showToast('Dummy action: this would save your profile changes.');
         });
 
-        // ── MAINTENANCE REPORT DETAILS ──
-        // Clicking any ongoing/resolved report opens a modal with its
-        // full description, status, and photo (populated from the
-        // data-maint-* attributes set server-side by Blade above).
         document.querySelectorAll('.maint-item[data-open-modal]').forEach(item => {
             item.addEventListener('click', () => {
                 document.getElementById('mdTitle').textContent = item.dataset.maintTitle || 'Request';
