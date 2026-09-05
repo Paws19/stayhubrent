@@ -967,3 +967,498 @@ nav {
     color: #fff;
     flex-shrink: 0;
 }
+
+/*
+        ═══════════════════════════════════════════════════════════════
+        MOBILE-RESPONSIVE + UX PATCH
+        ═══════════════════════════════════════════════════════════════
+        This block is ADDITIVE ONLY — it does not remove or override any
+        Laravel/Blade logic, form actions, routes, @csrf tokens, or PHP
+        variables. It only adjusts layout, spacing, and tap targets so
+        the existing get-started.css design works well on small screens.
+        It loads AFTER get-started.css, so these rules win on conflicts
+        without you having to edit the original stylesheet.
+  */
+
+/* ---------- Global sanity ---------- */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+img,
+svg {
+    max-width: 100%;
+}
+
+/* ---------- Typography: readable + professional ---------- */
+body,
+p,
+span,
+a,
+li,
+label,
+input,
+select,
+textarea,
+button,
+.page-sub,
+.field-hint,
+.role-option p,
+.signin-link,
+.summary-row,
+.verify-box p,
+.resend {
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+.page-title,
+.form-head h1,
+.nav-logo,
+.role-option h3,
+.summary-title,
+.verify-box h3,
+#successTitle {
+    font-family: "Plus Jakarta Sans", "Inter", sans-serif !important;
+    letter-spacing: -0.01em;
+}
+
+p,
+li,
+.field-hint,
+.page-sub {
+    font-size: 0.95rem;
+}
+
+label {
+    font-weight: 500;
+}
+
+.field label span,
+.check-field span span {
+    color: #ff6b6b;
+    font-weight: 600;
+}
+
+/* ---------- Amenity grid: consistent alignment at every width ---------- */
+.amenity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.65rem;
+}
+
+.amenity-grid label,
+.amenity-grid .amenity-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 46px;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border, #333);
+    border-radius: 12px;
+    background: var(--surface, transparent);
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.amenity-grid label:hover,
+.amenity-grid .amenity-pill:hover {
+    border-color: var(--accent, #6c9aff);
+}
+
+.amenity-grid label:has(input:checked),
+.amenity-grid .amenity-pill:has(input:checked) {
+    border-color: var(--accent, #6c9aff);
+    background: color-mix(in srgb, var(--accent, #6c9aff) 12%, transparent);
+}
+
+.amenity-grid input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    margin: 0;
+    accent-color: var(--accent, #6c9aff);
+}
+
+/* ---------- Terms & conditions required-check ---------- */
+.check-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    cursor: pointer;
+}
+
+.check-field input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    accent-color: var(--accent, #6c9aff);
+}
+
+.check-field.terms-error {
+    outline: 1px solid #ff6b6b;
+    border-radius: 8px;
+    padding: 0.3rem;
+    animation: shakeTerms 0.35s ease;
+}
+
+#termsErrorMsg {
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    margin: -0.4rem 0 0.8rem 0;
+    display: none;
+}
+
+/* ---------- Age hint under Date of Birth ---------- */
+#ageHint {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+}
+
+#ageHint.age-ok {
+    color: var(--sub, #8fd6a8);
+}
+
+#ageHint.age-warning {
+    color: #ff6b6b;
+    font-weight: 500;
+}
+
+/* ---------- OTP incorrect-code alert ---------- */
+#otpServerError {
+    background: color-mix(in srgb, #ff6b6b 12%, transparent);
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    margin: 0.8rem 0;
+    text-align: left;
+}
+
+.otp-wrap.otp-shake {
+    animation: shakeTerms 0.4s ease;
+}
+
+/* ---------- Classic eye icon (replaces emoji) ---------- */
+.pw-eye {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted, #888);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    min-height: 32px;
+    min-width: 32px;
+}
+
+.pw-eye:hover {
+    color: var(--sub, #ccc);
+}
+
+.pw-eye svg {
+    display: block;
+}
+
+@keyframes shakeTerms {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+/* ---------- Nav ---------- */
+nav {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    row-gap: 0.5rem;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.theme-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---------- Page shell ---------- */
+.page {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.right-panel {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.form-card,
+.form-shell {
+    width: 100%;
+}
+
+/* Buttons: always comfortable tap size */
+button,
+.btn-full,
+.btn-back,
+input[type="submit"] {
+    min-height: 48px;
+}
+
+input,
+select,
+textarea {
+    font-size: 16px;
+    /* prevents iOS auto-zoom on focus */
+}
+
+/* ---------- Step indicator ---------- */
+.steps-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* old Edge/IE */
+}
+
+.steps-indicator::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari/new Edge */
+}
+
+.si-line {
+    flex: 1 1 auto;
+    min-width: 12px;
+}
+
+/* ---------- Role picker ---------- */
+.role-picker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.role-option {
+    cursor: pointer;
+}
+
+/* ---------- Field layout ---------- */
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.field {
+    width: 100%;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+}
+
+/* ---------- Amenity grid ---------- */
+.amenity-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+}
+
+.amenity-grid label {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* ---------- OTP inputs ---------- */
+.otp-wrap {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.otp-input {
+    width: 44px;
+    height: 52px;
+    text-align: center;
+    font-size: 1.25rem;
+}
+
+/* ═══════════════════════════════════════ */
+/* Small phones / narrow viewports          */
+/* ═══════════════════════════════════════ */
+@media (max-width: 640px) {
+    nav {
+        padding: 0.75rem 1rem;
+    }
+
+    .nav-back {
+        font-size: 0.8rem;
+    }
+
+    .page-title {
+        font-size: 1.6rem;
+        line-height: 1.25;
+    }
+
+    .page-sub {
+        font-size: 0.9rem;
+    }
+
+    .page-badge {
+        font-size: 0.75rem;
+    }
+
+    .form-head h1 {
+        font-size: 1.3rem;
+    }
+
+    .form-card {
+        padding: 1.1rem;
+        border-radius: 16px;
+    }
+
+    /* Collapse step-indicator labels to numbers only */
+    .si-step span {
+        display: none;
+    }
+
+    .si-num {
+        width: 30px;
+        height: 30px;
+        font-size: 0.85rem;
+    }
+
+    /* Stack role cards on very small screens */
+    .role-picker {
+        grid-template-columns: 1fr;
+    }
+
+    .role-option {
+        padding: 1rem;
+    }
+
+    /* Stack paired fields (First/Last name, budgets, etc.) */
+    .field-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    /* Amenities: narrower tiles so 2 fit per row without crowding */
+    .amenity-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .amenity-grid label,
+    .amenity-grid .amenity-pill {
+        font-size: 0.8rem;
+        padding: 0.55rem 0.7rem;
+    }
+
+    /* OTP boxes shrink slightly so 6 fit without wrapping oddly */
+    .otp-wrap {
+        gap: 0.35rem;
+    }
+
+    .otp-input {
+        width: 38px;
+        height: 46px;
+        font-size: 1.1rem;
+    }
+
+    /* Decorative background orbs shouldn't cause horizontal scroll
+               or distract on small screens */
+    .page-orb {
+        opacity: 0.5;
+        filter: blur(40px);
+    }
+
+    .summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.15rem;
+    }
+
+    .verify-box {
+        padding: 1.1rem;
+    }
+}
+
+/* Extra-small phones */
+@media (max-width: 380px) {
+    .otp-input {
+        width: 32px;
+        height: 42px;
+        font-size: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.4rem;
+    }
+}
+
+/* ---------- Respect users who prefer less motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

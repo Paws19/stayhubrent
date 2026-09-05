@@ -3,13 +3,14 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>StayHubRent — Get Started</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/get-started.css') }}" />
+
 </head>
 
 <body>
@@ -126,7 +127,7 @@
                         @endif
 
                         <div class="field-group">
-                            <form method="POST" action="{{ route('register.store') }}">
+                            <form method="POST" action="{{ route('register.store') }}" id="registerForm">
                                 @csrf
 
                                 <input type="hidden" name="role" id="roleInput"
@@ -135,26 +136,26 @@
                                     <div class="field">
                                         <label>First Name <span>*</span></label>
                                         <input type="text" placeholder="Juan" name="first_name"
-                                            value="{{ old('first_name') }}" id="firstName" />
+                                            value="{{ old('first_name') }}" id="firstName" required />
                                     </div>
 
                                     <div class="field">
                                         <label>Last Name <span>*</span></label>
                                         <input type="text" placeholder="dela Cruz" name="last_name"
-                                            value="{{ old('last_name') }}" id="lastName" />
+                                            value="{{ old('last_name') }}" id="lastName" required />
                                     </div>
                                 </div>
 
                                 <div class="field">
                                     <label>Email Address <span>*</span></label>
                                     <input type="email" placeholder="juan@email.com" name="email"
-                                        value="{{ old('email') }}" id="emailInput" />
+                                        value="{{ old('email') }}" id="emailInput" required />
                                 </div>
 
                                 <div class="field">
                                     <label>Phone Number <span>*</span></label>
                                     <input type="tel" placeholder="+63 9XX XXX XXXX" name="phone_number"
-                                        value="{{ old('phone_number') }}" id="phoneInput" />
+                                        value="{{ old('phone_number') }}" id="phoneInput" required />
                                 </div>
 
                                 <div class="field">
@@ -162,10 +163,27 @@
 
                                     <div class="pw-wrap">
                                         <input type="password" placeholder="Min. 8 characters" name="password"
-                                            id="pwInput" oninput="checkStrength()" />
+                                            id="pwInput" oninput="checkStrength()" required minlength="8" />
 
-                                        <button class="pw-eye" onclick="togglePw('pwInput',this)" type="button">
-                                            👁
+                                        <button class="pw-eye" onclick="togglePw('pwInput',this)" type="button"
+                                            aria-label="Show password">
+                                            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20"
+                                                fill="none" stroke="currentColor" stroke-width="1.8"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z">
+                                                </path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            <svg class="eye-closed" viewBox="0 0 24 24" width="20"
+                                                height="20" fill="none" stroke="currentColor"
+                                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                                style="display:none;">
+                                                <path d="M3 3l18 18"></path>
+                                                <path d="M10.6 10.6a3 3 0 0 0 4.24 4.24"></path>
+                                                <path
+                                                    d="M9.9 5.2A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a13.2 13.2 0 0 1-3.14 3.94M6.6 6.6C3.4 8.5 1.5 12 1.5 12S5 19 12 19a10.6 10.6 0 0 0 4.24-.86">
+                                                </path>
+                                            </svg>
                                         </button>
                                     </div>
 
@@ -186,15 +204,32 @@
 
                                     <div class="pw-wrap">
                                         <input type="password" placeholder="Re-enter password"
-                                            name="password_confirmation" id="pw2Input" />
+                                            name="password_confirmation" id="pw2Input" required />
 
-                                        <button class="pw-eye" onclick="togglePw('pw2Input',this)" type="button">
-                                            👁
+                                        <button class="pw-eye" onclick="togglePw('pw2Input',this)" type="button"
+                                            aria-label="Show password">
+                                            <svg class="eye-open" viewBox="0 0 24 24" width="20" height="20"
+                                                fill="none" stroke="currentColor" stroke-width="1.8"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z">
+                                                </path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            <svg class="eye-closed" viewBox="0 0 24 24" width="20"
+                                                height="20" fill="none" stroke="currentColor"
+                                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                                style="display:none;">
+                                                <path d="M3 3l18 18"></path>
+                                                <path d="M10.6 10.6a3 3 0 0 0 4.24 4.24"></path>
+                                                <path
+                                                    d="M9.9 5.2A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a13.2 13.2 0 0 1-3.14 3.94M6.6 6.6C3.4 8.5 1.5 12 1.5 12S5 19 12 19a10.6 10.6 0 0 0 4.24-.86">
+                                                </path>
+                                            </svg>
                                         </button>
                                     </div>
                                 </div>
 
-                                <label class="check-field">
+                                <label class="check-field" id="termsField">
                                     <input type="checkbox" name="terms" id="termsCheck" />
 
                                     <span>
@@ -202,11 +237,13 @@
                                         <a href="#">Terms of Service</a>
                                         and
                                         <a href="#">Privacy Policy</a>
+                                        <span>*</span>
                                     </span>
                                 </label>
+                                <p id="termsErrorMsg">Please accept the Terms of Service and Privacy Policy to
+                                    continue.</p>
 
-
-                                <button type="submit" class="btn-full">
+                                <button type="submit" class="btn-full" id="btnStep2Submit">
                                     Continue →
                                 </button>
                             </form>
@@ -249,12 +286,12 @@
                             <div class="field-group">
                                 <div class="field">
                                     <label>Property Name <span>*</span></label>
-                                    <input type="text" name="property_name"
-                                        placeholder="e.g. Sunshine Dormitory" />
+                                    <input type="text" name="property_name" placeholder="e.g. Sunshine Dormitory"
+                                        required />
                                 </div>
                                 <div class="field">
                                     <label>Property Type <span>*</span></label>
-                                    <select name="property_type">
+                                    <select name="property_type" required>
                                         <option value="">Select type...</option>
                                         <option value="boarding_house">Boarding House</option>
                                         <option value="apartment">Apartment</option>
@@ -272,23 +309,24 @@
                                     <div class="field">
                                         <label>Number of Rooms <span>*</span></label>
                                         <input type="number" name="number_of_rooms" placeholder="e.g. 10"
-                                            min="1" />
+                                            min="1" required />
                                     </div>
                                 </div>
                                 <div class="field-row">
                                     <div class="field">
                                         <label>Beds per Room <span>*</span></label>
                                         <input type="number" name="bed_per_room" placeholder="e.g. 4"
-                                            min="1" />
+                                            min="1" required />
                                     </div>
                                     <div class="field">
                                         <label>Monthly Rent (₱) <span>*</span></label>
-                                        <input type="number" name="monthly_rent" placeholder="e.g. 3500" />
+                                        <input type="number" name="monthly_rent" placeholder="e.g. 3500" required />
                                     </div>
                                 </div>
                                 <div class="field">
                                     <label>Full Address <span>*</span></label>
-                                    <input type="text" name="full_address" placeholder="Street, Barangay, City" />
+                                    <input type="text" name="full_address" placeholder="Street, Barangay, City"
+                                        required />
                                 </div>
                                 <div class="field">
                                     <label>Amenities</label>
@@ -393,7 +431,9 @@
                                     </label>
 
                                     <input type="date" name="date_of_birth" value="{{ old('date_of_birth') }}"
-                                        required>
+                                        id="dobInput" required>
+
+                                    <p class="field-hint" id="ageHint"></p>
 
                                 </div>
 
@@ -640,7 +680,7 @@
                             </button>
 
 
-                            <button type="submit" class="btn-full">
+                            <button type="submit" class="btn-full" id="tenantSubmitBtn">
                                 Continue →
                             </button>
 
@@ -882,6 +922,12 @@
                                 Enter the code below to create your account.
                             </p>
 
+                            @if (session('error'))
+                                <div class="alert alert-danger" id="otpServerError">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+
 
                             <!-- OTP FORM -->
 
@@ -1040,6 +1086,111 @@
         });
     </script>
     <script>
+        /* ── TERMS & CONDITIONS REQUIRED CHECK ── */
+        const registerForm = document.getElementById('registerForm');
+        const termsCheck = document.getElementById('termsCheck');
+        const termsField = document.getElementById('termsField');
+        const termsErrorMsg = document.getElementById('termsErrorMsg');
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(event) {
+                if (!termsCheck.checked) {
+                    event.preventDefault();
+
+                    termsErrorMsg.style.display = 'block';
+                    termsField.classList.add('terms-error');
+                    termsField.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+
+                    // remove the shake class so it can replay if they try again
+                    setTimeout(() => termsField.classList.remove('terms-error'), 400);
+                }
+            });
+
+            // clear the error as soon as they check the box
+            termsCheck.addEventListener('change', function() {
+                if (termsCheck.checked) {
+                    termsErrorMsg.style.display = 'none';
+                }
+            });
+        }
+    </script>
+    <script>
+        /* ── LIVE AGE CALCULATION (Tenant · Date of Birth) ── */
+        const dobInput = document.getElementById('dobInput');
+        const ageHint = document.getElementById('ageHint');
+        const tenantSubmitBtn = document.getElementById('tenantSubmitBtn');
+        const MIN_TENANT_AGE = 18;
+
+        function calculateAge(birthDateStr) {
+            const today = new Date();
+            const birthDate = new Date(birthDateStr);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        if (dobInput && ageHint) {
+            dobInput.addEventListener('change', function() {
+                if (!dobInput.value) {
+                    ageHint.textContent = '';
+                    ageHint.className = 'field-hint';
+                    if (tenantSubmitBtn) tenantSubmitBtn.disabled = false;
+                    return;
+                }
+
+                const age = calculateAge(dobInput.value);
+
+                if (age < 0) {
+                    ageHint.textContent = 'Please enter a valid date of birth.';
+                    ageHint.className = 'field-hint age-warning';
+                    if (tenantSubmitBtn) tenantSubmitBtn.disabled = true;
+                } else if (age < MIN_TENANT_AGE) {
+                    ageHint.textContent =
+                        `You're ${age} years old — sorry, you must be at least ${MIN_TENANT_AGE} to create a tenant account.`;
+                    ageHint.className = 'field-hint age-warning';
+                    if (tenantSubmitBtn) tenantSubmitBtn.disabled = true;
+                } else {
+                    ageHint.textContent = `You're ${age} years old.`;
+                    ageHint.className = 'field-hint age-ok';
+                    if (tenantSubmitBtn) tenantSubmitBtn.disabled = false;
+                }
+            });
+        }
+    </script>
+    <script>
+        /* ── OTP: reset + draw attention when the backend flags a wrong code ── */
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpServerError = document.getElementById('otpServerError');
+            if (otpServerError) {
+                const otpWrap = document.querySelector('.otp-wrap');
+                const inputs = document.querySelectorAll('.otp-input');
+
+                inputs.forEach(i => i.value = '');
+                document.getElementById('otp').value = '';
+
+                if (otpWrap) {
+                    otpWrap.classList.add('otp-shake');
+                    setTimeout(() => otpWrap.classList.remove('otp-shake'), 450);
+                }
+
+                if (inputs.length) {
+                    inputs[0].focus();
+                }
+
+                otpServerError.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        });
+    </script>
+    <script>
         /* ── STATE ── */
         let currentStep = 1;
 
@@ -1147,8 +1298,14 @@
         /* ── PASSWORD ── */
         function togglePw(id, btn) {
             const inp = document.getElementById(id);
-            inp.type = inp.type === 'password' ? 'text' : 'password';
-            btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+            const isHidden = inp.type === 'password';
+            inp.type = isHidden ? 'text' : 'password';
+
+            const openIcon = btn.querySelector('.eye-open');
+            const closedIcon = btn.querySelector('.eye-closed');
+            openIcon.style.display = isHidden ? 'none' : 'block';
+            closedIcon.style.display = isHidden ? 'block' : 'none';
+            btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
         }
 
         function checkStrength() {
@@ -1329,8 +1486,8 @@
             // Run when page loads
             showRoleSummary();
 
-        }); <
-        /body>
+        });
+    </script>
+</body>
 
-        <
-        /html>
+</html>

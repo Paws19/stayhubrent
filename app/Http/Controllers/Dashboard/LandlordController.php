@@ -11,7 +11,7 @@ class LandlordController extends Controller
 {
     public function index()
 {
-    $accountId = auth()->id();
+    $accountId = UserInformation::where('account_id', auth()->id())->value('account_id');
 
     $landlordProperty = LandlordDetail::where('account_id', $accountId)->first();
 
