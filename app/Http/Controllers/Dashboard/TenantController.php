@@ -13,7 +13,7 @@ class TenantController extends Controller
 {
  public function index()
 {
-    $accountId = UserInformation::where('account_id', auth()->id())->value('account_id');
+    $accountId = UserInformation::where('account_id', session('account_id'))->value('account_id');
 
     //get first name
     $GetFirstName = UserInformation::where('account_id', $accountId)->first();
@@ -36,8 +36,7 @@ class TenantController extends Controller
     $hasRoom = AssignApartmentModel::where('account_id', $accountId)->exists();
 
     
-    
-
     return view('dashboard.tenant', compact('pendingRequests', 'resolvedRequests', 'GetFirstName', 'paymentHistory', 'hasRoom'));
 }
+
 }

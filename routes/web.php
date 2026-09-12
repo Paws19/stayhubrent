@@ -37,9 +37,15 @@ Route::post('/tenant-details', [App\Http\Controllers\TenantDetailsController::cl
 Route::get('/dashboard/landlord', [
     App\Http\Controllers\Dashboard\LandlordController::class,
     'index'
-])
+])->middleware(['auth', 'role:landlord'])->name('dashboard.landlord');
+
+//Add new apartment
+Route::post('/add-new-apartment', [App\Http\Controllers\Dashboard\LandlordController::class, 'AddNewApartment'])
     ->middleware(['auth', 'role:landlord'])
-    ->name('dashboard.landlord');
+    ->name('add-new-apartment.store');
+
+
+
 Route::post('/logout', [App\Http\Controllers\AccountController::class, 'logout'])
     ->middleware('auth')
     ->name('logout.store');

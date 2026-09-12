@@ -10,12 +10,9 @@
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Leaflet + OpenStreetMap — free, no API key required. Same setup as your tenant dashboard. -->
+    <!-- Leaflet + OpenStreetMap -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <link rel="stylesheet" href="{{ asset('css/landlord.css') }}" />
-
-
 </head>
 
 <body>
@@ -34,13 +31,12 @@
 
             @if ($landlordProperty)
                 @php
-                    // Same labels used on the sign-up form's Property Type dropdown.
-$propertyTypeLabels = [
-    'boarding_house' => 'Boarding House',
-    'apartment' => 'Apartment',
-    'dormitory' => 'Dormitory',
-    'bedspace' => 'Bed Space',
-    'studio_unit' => 'Studio Unit',
+                    $propertyTypeLabels = [
+                        'boarding_house' => 'Boarding House',
+                        'apartment' => 'Apartment',
+                        'dormitory' => 'Dormitory',
+                        'bedspace' => 'Bed Space',
+                        'studio_unit' => 'Studio Unit',
                     ];
                     $propertyTypeLabel =
                         $propertyTypeLabels[$landlordProperty->property_type] ?? $landlordProperty->property_type;
@@ -98,8 +94,8 @@ $propertyTypeLabels = [
 
             @if (session('justRegistered'))
                 <div class="helper-banner" style="background:var(--gold-tint, #FBF0DA); margin-top:8px;">
-                    🎉 Welcome, {{ auth()->user()->email ?? 'landlord' }}! The property you filled in during
-                    sign-up is already saved below in <strong>My Properties</strong> — no need to re-enter it.
+                    🎉 Welcome, {{ auth()->user()->email ?? 'landlord' }}! The property you filled in during sign-up is
+                    already saved below in <strong>My Properties</strong> — no need to re-enter it.
                 </div>
             @endif
 
@@ -237,19 +233,18 @@ $propertyTypeLabels = [
 
                 @if ($landlordProperty)
                     @php
-                        // Same labels used on the sign-up form's Property Type dropdown.
-$regTypeLabels = [
-    'boarding_house' => 'Boarding House',
-    'apartment' => 'Apartment',
-    'dormitory' => 'Dormitory',
-    'bedspace' => 'Bed Space',
-    'studio_unit' => 'Studio Unit',
-];
-$regTypeLabel =
-    $regTypeLabels[$landlordProperty->property_type] ?? $landlordProperty->property_type;
-$regAmenities = is_array($landlordProperty->amenities)
-    ? $landlordProperty->amenities
-    : (json_decode($landlordProperty->amenities ?? '[]', true) ?:
+                        $regTypeLabels = [
+                            'boarding_house' => 'Boarding House',
+                            'apartment' => 'Apartment',
+                            'dormitory' => 'Dormitory',
+                            'bedspace' => 'Bed Space',
+                            'studio_unit' => 'Studio Unit',
+                        ];
+                        $regTypeLabel =
+                            $regTypeLabels[$landlordProperty->property_type] ?? $landlordProperty->property_type;
+                        $regAmenities = is_array($landlordProperty->amenities)
+                            ? $landlordProperty->amenities
+                            : (json_decode($landlordProperty->amenities ?? '[]', true) ?:
                             []);
                     @endphp
                     <div class="panel" id="regPanel">
@@ -455,7 +450,6 @@ $regAmenities = is_array($landlordProperty->amenities)
             <div class="modal-sub">Are you sure you want to log out?</div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" onclick="closeLogoutModal()">Cancel</button>
-                <!-- REAL LARAVEL LOGOUT — posts to your logout route, same as your other dashboard -->
                 <form method="POST" action="{{ route('logout.store') }}" style="flex:1; margin:0; display:flex;">
                     @csrf
                     <button type="submit" class="btn btn-danger" style="width:100%;">Yes, Log Out</button>
@@ -467,66 +461,165 @@ $regAmenities = is_array($landlordProperty->amenities)
     <!-- ============ ADD / EDIT PROPERTY MODAL ============ -->
     <div class="modal-overlay" id="propertyModal">
         <div class="modal">
+
             <h3 id="propModalTitle">Add a New Apartment</h3>
-            <div class="modal-sub">Fill in the details below. Tenants will be able to see this room once you save it.
+
+            <div class="modal-sub">
+                Fill in the details below. Tenants will be able to see this property once you save it.
             </div>
-            <div class="field">
-                <label>Property name</label>
-                <input type="text" id="pName" placeholder="e.g. Sunview Residences">
-            </div>
-            <div class="field">
-                <label>Room or unit name</label>
-                <input type="text" id="pRoomName" placeholder="e.g. Room 204">
-            </div>
-            <div class="field">
-                <label>Full address</label>
-                <input type="text" id="pAddress" placeholder="e.g. 123 Kalayaan Ave, Mandaluyong City">
-            </div>
-            <div class="field-row">
+
+            <!-- FORM START -->
+            <form action="{{ route('add-new-apartment.store') }}" method="POST" enctype="multipart/form-data"
+                id="propertyForm">
+                @csrf
+
+                <!-- PROPERTY NAME -->
                 <div class="field">
-                    <label>Monthly rent (₱)</label>
-                    <input type="number" id="pRent" placeholder="e.g. 4500">
+                    <label for="pName">Property name</label>
+                    <input type="text" id="pName" name="apartment_name" placeholder="e.g. Sunview Residences"
+                        value="{{ old('apartment_name') }}" required>
+                    @error('apartment_name')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
                 </div>
+
+                <!-- PROPERTY TYPE -->
                 <div class="field">
-                    <label>Total beds in this room</label>
-                    <input type="number" id="pCapacity" min="1" value="1">
+                    <label for="pType">Property type</label>
+                    <select id="pType" name="room_type" required>
+                        <option value="" disabled {{ old('room_type') ? '' : 'selected' }}>Select property type
+                        </option>
+                        <option value="Apartment" {{ old('room_type') == 'Apartment' ? 'selected' : '' }}>Apartment
+                        </option>
+                        <option value="Dormitory" {{ old('room_type') == 'Dormitory' ? 'selected' : '' }}>Dormitory
+                        </option>
+                        <option value="Bedspace" {{ old('room_type') == 'Bedspace' ? 'selected' : '' }}>Bedspace
+                        </option>
+                        <option value="Studio Unit" {{ old('room_type') == 'Studio Unit' ? 'selected' : '' }}>Studio
+                            Unit</option>
+                        <option value="Boarding House" {{ old('room_type') == 'Boarding House' ? 'selected' : '' }}>
+                            Boarding House</option>
+                    </select>
+                    @error('room_type')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
                 </div>
-            </div>
-            <div class="field">
-                <label>Beds still open (available)</label>
-                <input type="number" id="pAvailable" min="0" value="1">
-            </div>
-            <div class="field">
-                <label>Amenities (separate with commas)</label>
-                <input type="text" id="pAmenities" placeholder="e.g. WiFi, Aircon, Shared Kitchen">
-            </div>
-            <div class="field">
-                <label>Pin it on the map (optional, but helpful for tenants)</label>
-                <div style="display:flex; gap:8px; margin-bottom:10px;">
-                    <input type="text" id="pMapSearch" placeholder="Type the address, then tap Find">
-                    <button type="button" class="btn btn-ghost btn-sm" id="pMapSearchBtn" style="flex-shrink:0;">🔎
-                        Find</button>
+
+                <!-- ROOM / UNIT NAME -->
+                <div class="field">
+                    <label for="pRoomName">Room or unit name</label>
+                    <input type="text" id="pRoomName" name="room_name" placeholder="e.g. Room 204"
+                        value="{{ old('room_name') }}" required>
+                    @error('room_name')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
                 </div>
-                <div id="pMap"
-                    style="height:220px; border-radius:12px; overflow:hidden; border:1px solid var(--line);"></div>
-                <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">Tap anywhere on the map to drop the
-                    pin, or drag it once it's there.</div>
-                <input type="hidden" id="pLat"><input type="hidden" id="pLng">
-            </div>
-            <div class="field">
-                <label>Photo</label>
-                <div class="photo-drop" id="pPhotoDrop">📷 Click to choose a photo (optional — a placeholder will be
-                    used otherwise)</div>
-                <input type="file" id="pPhotoInput" accept="image/*" style="display:none;">
-                <div id="pPhotoPreviewWrap" style="margin-top:10px; display:none;">
-                    <img id="pPhotoPreview"
-                        style="width:100%; max-height:150px; object-fit:cover; border-radius:10px;">
+
+                <!-- FULL ADDRESS -->
+                <div class="field">
+                    <label for="pAddress">Full address</label>
+                    <textarea id="pAddress" name="apartment_address" rows="2" placeholder="e.g. 123 Kalayaan Ave, Silang, Cavite"
+                        required>{{ old('apartment_address') }}</textarea>
+                    @error('apartment_address')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
                 </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-ghost" data-close="propertyModal">Cancel</button>
-                <button class="btn btn-primary" id="pSave">Save Apartment</button>
-            </div>
+
+                <!-- RENT + TOTAL BEDS -->
+                <div class="field-row">
+                    <div class="field">
+                        <label for="pRent">Monthly rent (₱)</label>
+                        <input type="number" id="pRent" name="monthly_rent" placeholder="e.g. 4500"
+                            min="0" step="0.01" value="{{ old('monthly_rent') }}" required>
+                        @error('monthly_rent')
+                            <small style="color:red;">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="field">
+                        <label for="pCapacity">Total beds</label>
+                        <input type="number" id="pCapacity" name="total_beds_in_room" min="1"
+                            value="{{ old('total_beds_in_room', 1) }}" required>
+                        @error('total_beds_in_room')
+                            <small style="color:red;">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- AVAILABLE BEDS -->
+                <div class="field">
+                    <label for="pAvailable">Available beds</label>
+                    <input type="number" id="pAvailable" name="available_beds_in_room" min="0"
+                        value="{{ old('available_beds_in_room', 1) }}" required>
+                    <small style="color: var(--ink-soft);">Number of beds that are still available for tenants.</small>
+                    @error('available_beds_in_room')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <!-- AMENITIES -->
+                <div class="field">
+                    <label for="pAmenities">Amenities</label>
+                    <input type="text" id="pAmenities" name="amenities"
+                        placeholder="e.g. WiFi, Aircon, Shared Kitchen" value="{{ old('amenities') }}">
+                    <small style="color: var(--ink-soft);">Separate each amenity with a comma.</small>
+                    @error('amenities')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <!-- PROPERTY LOCATION / MAP -->
+                <div class="field">
+                    <label>Property location</label>
+                    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:8px;">
+                        Search for the property address or click directly on the map to place the location pin.
+                    </div>
+
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="text" id="pMapSearch" placeholder="Search property location">
+                        <button type="button" class="btn btn-ghost btn-sm" id="pMapSearchBtn"
+                            style="flex-shrink:0;">🔎 Find</button>
+                    </div>
+
+                    <div id="pMap"
+                        style="height:220px; border-radius:12px; overflow:hidden; border:1px solid var(--line);"></div>
+
+                    <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">
+                        📍 Click anywhere on the map to place the pin. You can also drag the pin to the exact location.
+                    </div>
+
+                    <input type="hidden" id="pLat" name="latitude" value="{{ old('latitude') }}">
+                    <input type="hidden" id="pLng" name="longitude" value="{{ old('longitude') }}">
+                </div>
+
+                <!-- PROPERTY PHOTO -->
+                <div class="field">
+                    <label>Property photo</label>
+                    <div class="photo-drop" id="pPhotoDrop">
+                        📷 Click to choose a photo<br>
+                        <small>Optional — a placeholder will be used if no photo is uploaded.</small>
+                    </div>
+                    <input type="file" id="pPhotoInput" name="apartment_image" accept="image/*"
+                        style="display:none;">
+
+                    <div id="pPhotoPreviewWrap" style="margin-top:10px; display:none;">
+                        <img id="pPhotoPreview" alt="Property photo preview"
+                            style="width:100%; max-height:180px; object-fit:cover; border-radius:10px;">
+                    </div>
+                    @error('apartment_image')
+                        <small style="color:red;">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <!-- MODAL BUTTONS -->
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" data-close="propertyModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="pSave">Save Apartment</button>
+                </div>
+
+            </form>
+            <!-- FORM END -->
+
         </div>
     </div>
 
@@ -610,17 +703,12 @@ $regAmenities = is_array($landlordProperty->amenities)
 
     <div class="toast" id="toast"></div>
 
-    <!-- Leaflet + OpenStreetMap — free, no API key required -->
+    <!-- Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         (function() {
 
-            // ---------------------------------------------------------------------
-            // SAMPLE DATA — replace with real data from your Laravel controller.
-            // Field names on `properties` intentionally match what the TENANT
-            // dashboard's Browse Rooms page expects ($availableApartments), so a
-            // property added here is ready to show up there too.
-            // ---------------------------------------------------------------------
+            // Sample data (you can later replace this with real data from Laravel)
             let properties = [{
                     id: 'p1',
                     room_name: 'Room 204',
@@ -662,18 +750,8 @@ $regAmenities = is_array($landlordProperty->amenities)
                 },
             ];
 
-            // ---------------------------------------------------------------------
-            // PROPERTY FROM REGISTRATION (Step 3 of sign-up — "Property Details").
-            // Your controller should pass the record the landlord just filled in,
-            // e.g.  return view('landlord.dashboard', [
-            //           'landlordProperty' => $landlord->properties()->latest()->first(),
-            //       ]);
-            // If nothing is passed (e.g. an existing landlord with no fresh
-            // registration), this stays null and nothing changes below.
-            // ---------------------------------------------------------------------
             const landlordRegisteredProperty = @json($landlordProperty ?? null);
 
-            // Friendlier labels for the property_type select from the sign-up form.
             const PROPERTY_TYPE_LABELS = {
                 boarding_house: 'Boarding House',
                 apartment: 'Apartment',
@@ -694,7 +772,6 @@ $regAmenities = is_array($landlordProperty->amenities)
                     property_name: reg.property_name,
                     address: reg.full_address,
                     monthly_rent: Number(reg.monthly_rent) || 0,
-                    // Brand-new listing, so every bed still starts out open.
                     available_beds: totalBeds,
                     bed_capacity: totalBeds,
                     amenities: Array.isArray(reg.amenities) ? reg.amenities.join(', ') : (reg.amenities || '—'),
@@ -702,11 +779,8 @@ $regAmenities = is_array($landlordProperty->amenities)
                         'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=700&q=60',
                     latitude: reg.latitude || null,
                     longitude: reg.longitude || null,
-                    // Extra details only the registration form captures — the quick
-                    // Add/Edit Apartment modal doesn't ask for these, so they're kept
-                    // here purely for display on this property's card.
-                    property_type: reg.property_type ?
-                        (PROPERTY_TYPE_LABELS[reg.property_type] || reg.property_type) : null,
+                    property_type: reg.property_type ? (PROPERTY_TYPE_LABELS[reg.property_type] || reg
+                        .property_type) : null,
                     number_of_floors: reg.number_of_floors || null,
                     number_of_rooms: reg.number_of_rooms || null,
                     bed_per_room: reg.bed_per_room || null,
@@ -876,9 +950,6 @@ $regAmenities = is_array($landlordProperty->amenities)
                 });
             }
 
-            // Owner chip now reads {{ auth()->user()->email }} directly in the HTML above (Blade),
-            // so no JS is needed to set it.
-
             // ---------------- Navigation ----------------
             const views = ['overview', 'properties', 'tenants', 'revenue', 'maintenance', 'notices'];
             const titles = {
@@ -948,9 +1019,6 @@ $regAmenities = is_array($landlordProperty->amenities)
 
             window.openLogoutModal = () => openModal('logoutModal');
             window.closeLogoutModal = () => closeModal('logoutModal');
-            // No JS handler needed on the "Yes, Log Out" button anymore — it's a real
-            // <form method="POST" action="{{ route('logout.store') }}"> now, so clicking
-            // it submits straight to your Laravel backend, exactly like your tenant dashboard.
 
             // ---------------- Stats / Overview ----------------
             function renderStats() {
@@ -984,24 +1052,23 @@ $regAmenities = is_array($landlordProperty->amenities)
                     },
                 ];
                 document.getElementById('statsGrid').innerHTML = cards.map(c => `
-      <div class="stat-card">
-        <div class="stat-label">${c.label}</div>
-        <div class="stat-value">${c.value}</div>
-        <div class="stat-note">${c.note}</div>
-      </div>`).join('');
+                    <div class="stat-card">
+                        <div class="stat-label">${c.label}</div>
+                        <div class="stat-value">${c.value}</div>
+                        <div class="stat-note">${c.note}</div>
+                    </div>`).join('');
 
                 document.getElementById('revenueStatsGrid').innerHTML = `
-      <div class="stat-card"><div class="stat-label">Collected</div><div class="stat-value">${peso(collected)}</div><div class="stat-note">${payments.filter(p=>p.status==='paid').length} payments received</div></div>
-      <div class="stat-card"><div class="stat-label">Still Owed</div><div class="stat-value">${peso(outstanding)}</div><div class="stat-note">${payments.filter(p=>p.status!=='paid').length} tenants haven't paid</div></div>
-      <div class="stat-card"><div class="stat-label">Collection Progress</div><div class="stat-value">${pct}%</div>
-        <div class="progress-track"><div class="progress-fill ${pct<60?'warn':''}" style="width:${pct}%"></div></div>
-      </div>`;
+                    <div class="stat-card"><div class="stat-label">Collected</div><div class="stat-value">${peso(collected)}</div><div class="stat-note">${payments.filter(p=>p.status==='paid').length} payments received</div></div>
+                    <div class="stat-card"><div class="stat-label">Still Owed</div><div class="stat-value">${peso(outstanding)}</div><div class="stat-note">${payments.filter(p=>p.status!=='paid').length} tenants haven't paid</div></div>
+                    <div class="stat-card"><div class="stat-label">Collection Progress</div><div class="stat-value">${pct}%</div>
+                        <div class="progress-track"><div class="progress-fill ${pct<60?'warn':''}" style="width:${pct}%"></div></div>
+                    </div>`;
 
                 document.getElementById('revenueProgressFill').style.width = pct + '%';
                 document.getElementById('revenueProgressFill').classList.toggle('warn', pct < 60);
                 document.getElementById('revenueProgressSub').textContent =
                     `${peso(collected)} collected of ${peso(expected)} expected (${pct}%)`;
-
                 document.getElementById('overdueBadge').textContent = payments.filter(p => p.status === 'overdue')
                     .length;
             }
@@ -1012,9 +1079,6 @@ $regAmenities = is_array($landlordProperty->amenities)
                     `You have ${properties.length} apartment${properties.length===1?'':'s'} listed.`;
                 document.getElementById('propertyGrid').innerHTML = properties.length ? properties.map(p => {
                         const openBeds = p.available_beds > 0;
-                        // Extra line for details only the sign-up form collects (property type,
-                        // floors, rooms, house rules). Sample/quick-add properties simply won't
-                        // have these fields, so this stays blank for them — nothing else changes.
                         const regDetails = [
                             p.property_type,
                             p.number_of_floors ? `${p.number_of_floors} floor${p.number_of_floors>1?'s':''}` :
@@ -1024,22 +1088,22 @@ $regAmenities = is_array($landlordProperty->amenities)
                         ].filter(Boolean).join(' · ');
 
                         return `<div class="property-card">
-        <div class="property-photo" style="background-image:url('${p.photo || ''}')">${p.photo ? '' : '🏠'}</div>
-        <div class="property-body">
-          <h3>${p.room_name} — ${p.property_name}</h3>
-          ${p.fromRegistration ? `<span class="avail-pill" style="margin-bottom:6px; display:inline-block;">📝 From your sign-up</span>` : ''}
-          <div class="property-addr">📍 ${p.address}</div>
-          ${regDetails ? `<div style="font-size:13.5px; color:var(--ink-soft); margin-top:2px;">${regDetails}</div>` : ''}
-          <div class="property-meta">
-            <span class="property-price">${peso(p.monthly_rent)}<span style="font-size:13px; font-weight:400; color:var(--ink-soft);">/mo</span></span>
-            <span class="avail-pill ${openBeds?'':'full'}">${openBeds ? p.available_beds + ' bed' + (p.available_beds>1?'s':'') + ' open' : 'Fully booked'}</span>
-          </div>
-          <div style="font-size:13.5px; color:var(--ink-soft);">${p.amenities || '—'}</div>
-          ${p.house_rules ? `<div style="font-size:13px; color:var(--ink-soft); margin-top:6px;"><strong>House rules:</strong> ${p.house_rules}</div>` : ''}
-          ${p.latitude ? `<a href="https://www.openstreetmap.org/?mlat=${p.latitude}&mlon=${p.longitude}#map=17/${p.latitude}/${p.longitude}" target="_blank" rel="noopener" style="display:inline-block; margin-top:8px; font-size:13.5px; font-weight:600;">📍 View on map ↗</a>` : ''}
-          <button type="button" class="btn btn-ghost btn-sm edit-property-btn" data-id="${p.id}" style="width:100%; margin-top:12px;">✏️ Edit This Apartment</button>
-        </div>
-      </div>`;
+                        <div class="property-photo" style="background-image:url('${p.photo || ''}')">${p.photo ? '' : '🏠'}</div>
+                        <div class="property-body">
+                            <h3>${p.room_name} — ${p.property_name}</h3>
+                            ${p.fromRegistration ? `<span class="avail-pill" style="margin-bottom:6px; display:inline-block;">📝 From your sign-up</span>` : ''}
+                            <div class="property-addr">📍 ${p.address}</div>
+                            ${regDetails ? `<div style="font-size:13.5px; color:var(--ink-soft); margin-top:2px;">${regDetails}</div>` : ''}
+                            <div class="property-meta">
+                                <span class="property-price">${peso(p.monthly_rent)}<span style="font-size:13px; font-weight:400; color:var(--ink-soft);">/mo</span></span>
+                                <span class="avail-pill ${openBeds?'':'full'}">${openBeds ? p.available_beds + ' bed' + (p.available_beds>1?'s':'') + ' open' : 'Fully booked'}</span>
+                            </div>
+                            <div style="font-size:13.5px; color:var(--ink-soft);">${p.amenities || '—'}</div>
+                            ${p.house_rules ? `<div style="font-size:13px; color:var(--ink-soft); margin-top:6px;"><strong>House rules:</strong> ${p.house_rules}</div>` : ''}
+                            ${p.latitude ? `<a href="https://www.openstreetmap.org/?mlat=${p.latitude}&mlon=${p.longitude}#map=17/${p.latitude}/${p.longitude}" target="_blank" rel="noopener" style="display:inline-block; margin-top:8px; font-size:13.5px; font-weight:600;">📍 View on map ↗</a>` : ''}
+                            <button type="button" class="btn btn-ghost btn-sm edit-property-btn" data-id="${p.id}" style="width:100%; margin-top:12px;">✏️ Edit This Apartment</button>
+                        </div>
+                    </div>`;
                     }).join('') :
                     `<div class="empty-state"><div class="em-title">No apartments yet</div>Tap "Add New Apartment" to list your first room.</div>`;
 
@@ -1048,7 +1112,13 @@ $regAmenities = is_array($landlordProperty->amenities)
                 });
             }
 
+            // =====================================================
+            // ADD / EDIT PROPERTY MODAL — FIXED FOR LARAVEL
+            // =====================================================
             let editingPropertyId = null;
+            let pendingPhotoDataUrl = '';
+            let pMap, pMarker;
+            const MANDALUYONG_CENTER = [14.5794, 121.0359];
 
             document.getElementById('addPropertyBtn').addEventListener('click', openAddPropertyModal);
             document.getElementById('qaAddProperty').addEventListener('click', openAddPropertyModal);
@@ -1057,36 +1127,44 @@ $regAmenities = is_array($landlordProperty->amenities)
                 editingPropertyId = null;
                 document.getElementById('propModalTitle').textContent = 'Add a New Apartment';
                 document.getElementById('pSave').textContent = 'Save Apartment';
-                ['pName', 'pRoomName', 'pAddress', 'pRent', 'pAmenities', 'pMapSearch'].forEach(id => document
-                    .getElementById(id).value = '');
+
+                ['pName', 'pRoomName', 'pAddress', 'pRent', 'pAmenities', 'pMapSearch'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+
                 document.getElementById('pCapacity').value = 1;
                 document.getElementById('pAvailable').value = 1;
+                document.getElementById('pType').selectedIndex = 0;
                 document.getElementById('pLat').value = '';
                 document.getElementById('pLng').value = '';
                 document.getElementById('pPhotoPreviewWrap').style.display = 'none';
                 document.getElementById('pPhotoInput').value = '';
                 pendingPhotoDataUrl = '';
+
                 openModal('propertyModal');
-                // The map needs the modal to be visible first, so give it a beat.
-                setTimeout(initPropertyMap, 60);
+                setTimeout(initPropertyMap, 80);
             }
 
             function openEditPropertyModal(id) {
                 const p = properties.find(x => x.id === id);
                 if (!p) return;
+
                 editingPropertyId = id;
                 document.getElementById('propModalTitle').textContent = 'Edit This Apartment';
                 document.getElementById('pSave').textContent = 'Save Changes';
-                document.getElementById('pName').value = p.property_name;
-                document.getElementById('pRoomName').value = p.room_name;
-                document.getElementById('pAddress').value = p.address;
-                document.getElementById('pRent').value = p.monthly_rent;
-                document.getElementById('pCapacity').value = p.bed_capacity;
-                document.getElementById('pAvailable').value = p.available_beds;
-                document.getElementById('pAmenities').value = (p.amenities === '—') ? '' : p.amenities;
+
+                document.getElementById('pName').value = p.property_name || '';
+                document.getElementById('pRoomName').value = p.room_name || '';
+                document.getElementById('pAddress').value = p.address || '';
+                document.getElementById('pRent').value = p.monthly_rent || '';
+                document.getElementById('pCapacity').value = p.bed_capacity || 1;
+                document.getElementById('pAvailable').value = p.available_beds || 0;
+                document.getElementById('pAmenities').value = (p.amenities === '—') ? '' : (p.amenities || '');
                 document.getElementById('pMapSearch').value = '';
                 document.getElementById('pLat').value = p.latitude || '';
                 document.getElementById('pLng').value = p.longitude || '';
+
                 pendingPhotoDataUrl = p.photo || '';
                 if (p.photo) {
                     document.getElementById('pPhotoPreview').src = p.photo;
@@ -1095,6 +1173,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                     document.getElementById('pPhotoPreviewWrap').style.display = 'none';
                 }
                 document.getElementById('pPhotoInput').value = '';
+
                 openModal('propertyModal');
                 setTimeout(() => {
                     initPropertyMap();
@@ -1102,14 +1181,8 @@ $regAmenities = is_array($landlordProperty->amenities)
                         pMap.setView([p.latitude, p.longitude], 16);
                         setPropertyMarker(p.latitude, p.longitude);
                     }
-                }, 60);
+                }, 80);
             }
-
-            // ---------------- Property location map (Leaflet + OpenStreetMap Nominatim — free) ----------------
-            let pMap, pMarker;
-            const MANDALUYONG_CENTER = [14.5794,
-                121.0359
-            ]; // sensible default center; re-centers once you search or pin
 
             function initPropertyMap() {
                 if (!pMap) {
@@ -1120,6 +1193,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                         attribution: '&copy; OpenStreetMap contributors',
                         maxZoom: 19
                     }).addTo(pMap);
+
                     pMap.on('click', (e) => {
                         setPropertyMarker(e.latlng.lat, e.latlng.lng);
                         reverseGeocodeProperty(e.latlng.lat, e.latlng.lng);
@@ -1127,6 +1201,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                 } else {
                     pMap.invalidateSize();
                 }
+
                 if (pMarker) {
                     pMap.removeLayer(pMarker);
                     pMarker = null;
@@ -1139,27 +1214,27 @@ $regAmenities = is_array($landlordProperty->amenities)
                 pMarker = L.marker([lat, lng], {
                     draggable: true
                 }).addTo(pMap);
+
                 pMarker.on('dragend', () => {
                     const pos = pMarker.getLatLng();
                     document.getElementById('pLat').value = pos.lat.toFixed(6);
                     document.getElementById('pLng').value = pos.lng.toFixed(6);
                     reverseGeocodeProperty(pos.lat, pos.lng);
                 });
+
                 document.getElementById('pLat').value = lat.toFixed(6);
                 document.getElementById('pLng').value = lng.toFixed(6);
             }
 
             function reverseGeocodeProperty(lat, lng) {
-                // Nominatim (OpenStreetMap's free search service) — turns a pin into a readable address.
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
                     .then(r => r.json())
                     .then(data => {
-                        if (data && data.display_name) document.getElementById('pAddress').value = data
-                            .display_name;
+                        if (data && data.display_name) {
+                            document.getElementById('pAddress').value = data.display_name;
+                        }
                     })
-                    .catch(() => {
-                        /* lookup failed — the address box stays editable by hand */
-                    });
+                    .catch(() => {});
             }
 
             function searchPropertyAddress() {
@@ -1168,12 +1243,13 @@ $regAmenities = is_array($landlordProperty->amenities)
                     toast('Type an address first, then tap Find.');
                     return;
                 }
+
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`)
                     .then(r => r.json())
                     .then(data => {
                         if (data && data[0]) {
-                            const lat = parseFloat(data[0].lat),
-                                lng = parseFloat(data[0].lon);
+                            const lat = parseFloat(data[0].lat);
+                            const lng = parseFloat(data[0].lon);
                             pMap.setView([lat, lng], 16);
                             setPropertyMarker(lat, lng);
                             document.getElementById('pAddress').value = data[0].display_name;
@@ -1183,6 +1259,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                     })
                     .catch(() => toast('Search failed — check your internet connection.'));
             }
+
             document.getElementById('pMapSearchBtn').addEventListener('click', searchPropertyAddress);
             document.getElementById('pMapSearch').addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
@@ -1191,12 +1268,15 @@ $regAmenities = is_array($landlordProperty->amenities)
                 }
             });
 
-            let pendingPhotoDataUrl = '';
-            document.getElementById('pPhotoDrop').addEventListener('click', () => document.getElementById('pPhotoInput')
-                .click());
+            // Photo preview
+            document.getElementById('pPhotoDrop').addEventListener('click', () => {
+                document.getElementById('pPhotoInput').click();
+            });
+
             document.getElementById('pPhotoInput').addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
+
                 const reader = new FileReader();
                 reader.onload = () => {
                     pendingPhotoDataUrl = reader.result;
@@ -1206,64 +1286,10 @@ $regAmenities = is_array($landlordProperty->amenities)
                 reader.readAsDataURL(file);
             });
 
-            document.getElementById('pSave').addEventListener('click', () => {
-                const name = document.getElementById('pName').value.trim();
-                const roomName = document.getElementById('pRoomName').value.trim();
-                const address = document.getElementById('pAddress').value.trim();
-                const rent = Number(document.getElementById('pRent').value);
-                const capacity = Number(document.getElementById('pCapacity').value) || 1;
-                const available = Number(document.getElementById('pAvailable').value) || 0;
-                const amenities = document.getElementById('pAmenities').value.trim();
-                const lat = parseFloat(document.getElementById('pLat').value);
-                const lng = parseFloat(document.getElementById('pLng').value);
-
-                if (!name || !roomName || !address || !rent) {
-                    toast('Please fill in the property name, room name, address and rent.');
-                    return;
-                }
-
-                if (editingPropertyId) {
-                    // ---- Updating an apartment that already exists ----
-                    const p = properties.find(x => x.id === editingPropertyId);
-                    if (p) {
-                        p.property_name = name;
-                        p.room_name = roomName;
-                        p.address = address;
-                        p.monthly_rent = rent;
-                        p.bed_capacity = capacity;
-                        p.available_beds = Math.min(available, capacity);
-                        p.amenities = amenities || '—';
-                        p.photo = pendingPhotoDataUrl || p.photo;
-                        p.latitude = isNaN(lat) ? p.latitude : lat;
-                        p.longitude = isNaN(lng) ? p.longitude : lng;
-                    }
-                    renderProperties();
-                    renderStats();
-                    closeModal('propertyModal');
-                    toast(`${roomName} at ${name} has been updated ✓`);
-                    return;
-                }
-
-                // ---- Adding a brand-new apartment ----
-                properties.unshift({
-                    id: 'p' + Date.now(),
-                    room_name: roomName,
-                    property_name: name,
-                    address: address,
-                    monthly_rent: rent,
-                    available_beds: Math.min(available, capacity),
-                    bed_capacity: capacity,
-                    amenities: amenities || '—',
-                    photo: pendingPhotoDataUrl ||
-                        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=700&q=60',
-                    latitude: isNaN(lat) ? null : lat,
-                    longitude: isNaN(lng) ? null : lng,
-                });
-                renderProperties();
-                renderStats();
-                closeModal('propertyModal');
-                toast(`${roomName} at ${name} has been added ✓ — tenants can now see it on Browse Rooms.`);
-            });
+            // =====================================================
+            // NO CLICK LISTENER ON #pSave
+            // The button is type="submit" → form posts to Laravel
+            // =====================================================
 
             // ---------------- Tenants ----------------
             function renderTenants(filter) {
@@ -1275,22 +1301,22 @@ $regAmenities = is_array($landlordProperty->amenities)
                 document.getElementById('tenantsList').innerHTML = rows.length ? rows.map(u => {
                         if (u.status === 'vacant') {
                             return `<div class="tenant-card">
-          <div class="avatar">—</div>
-          <div class="tenant-main"><h3>Unit ${u.id} — Vacant</h3><div class="sub">${peso(u.rent)}/mo · No tenant yet</div></div>
-          <span class="status-pill vacant">Vacant</span>
-        </div>`;
+                            <div class="avatar">—</div>
+                            <div class="tenant-main"><h3>Unit ${u.id} — Vacant</h3><div class="sub">${peso(u.rent)}/mo · No tenant yet</div></div>
+                            <span class="status-pill vacant">Vacant</span>
+                        </div>`;
                         }
                         return `<div class="tenant-card">
-        <div class="avatar">${u.tenant.charAt(0)}</div>
-        <div class="tenant-main">
-          <h3>${u.tenant} <span style="font-weight:400; color:var(--ink-soft); font-size:15px;">· Unit ${u.id}</span></h3>
-          <div class="sub">${peso(u.rent)}/mo · Lease ends ${formatDate(u.leaseEnds)}</div>
-        </div>
-        <span class="status-pill ${u.status}">${u.status.charAt(0).toUpperCase()+u.status.slice(1)}</span>
-        <div class="tenant-actions">
-          <button class="btn btn-ghost btn-sm" onclick="toast('Opening a message to ${u.tenant.replace(/'/g,"")} (demo only).')">✉️ Message</button>
-        </div>
-      </div>`;
+                        <div class="avatar">${u.tenant.charAt(0)}</div>
+                        <div class="tenant-main">
+                            <h3>${u.tenant} <span style="font-weight:400; color:var(--ink-soft); font-size:15px;">· Unit ${u.id}</span></h3>
+                            <div class="sub">${peso(u.rent)}/mo · Lease ends ${formatDate(u.leaseEnds)}</div>
+                        </div>
+                        <span class="status-pill ${u.status}">${u.status.charAt(0).toUpperCase()+u.status.slice(1)}</span>
+                        <div class="tenant-actions">
+                            <button class="btn btn-ghost btn-sm" onclick="toast('Opening a message to ${u.tenant.replace(/'/g,"")} (demo only).')">✉️ Message</button>
+                        </div>
+                    </div>`;
                     }).join('') :
                     `<div class="empty-state"><div class="em-title">No matches</div>Try a different name or unit.</div>`;
 
@@ -1304,18 +1330,18 @@ $regAmenities = is_array($landlordProperty->amenities)
                 const cls = p.status === 'paid' ? '' : (p.status === 'due' ? 'is-due' : 'is-overdue');
                 const label = p.status === 'paid' ? 'Paid' : (p.status === 'due' ? 'Due soon' : 'Overdue');
                 const actions = p.status !== 'paid' ? `
-      <div class="receipt-action">
-        <button class="btn btn-ghost btn-sm remind-btn" data-unit="${p.unit}">Remind</button>
-        <button class="btn btn-primary btn-sm mark-paid" data-unit="${p.unit}">Mark Paid</button>
-      </div>` : '';
+                    <div class="receipt-action">
+                        <button class="btn btn-ghost btn-sm remind-btn" data-unit="${p.unit}">Remind</button>
+                        <button class="btn btn-primary btn-sm mark-paid" data-unit="${p.unit}">Mark Paid</button>
+                    </div>` : '';
                 return `<div class="receipt ${cls}">
-      <div class="receipt-amt">${peso(p.amount)}</div>
-      <div class="receipt-meta">
-        <div class="who">${p.tenant} <span style="font-weight:400; color:var(--ink-soft);">· Unit ${p.unit}</span></div>
-        <div class="what">${p.status==='paid' ? 'Received ' + formatDate(p.date) : 'Rent due Sept 5, 2026'} · ${label}</div>
-      </div>
-      ${actions}
-    </div>`;
+                    <div class="receipt-amt">${peso(p.amount)}</div>
+                    <div class="receipt-meta">
+                        <div class="who">${p.tenant} <span style="font-weight:400; color:var(--ink-soft);">· Unit ${p.unit}</span></div>
+                        <div class="what">${p.status==='paid' ? 'Received ' + formatDate(p.date) : 'Rent due Sept 5, 2026'} · ${label}</div>
+                    </div>
+                    ${actions}
+                </div>`;
             }
 
             function renderLedger() {
@@ -1370,6 +1396,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                     `Hi ${u.tenant}, just a friendly reminder that rent for Unit ${u.id} (${peso(u.rent)}) is ${overdue?'now overdue':'due soon'}. Please let me know once it's settled. Thank you!`;
                 openModal('noticeModal');
             }
+
             document.getElementById('recordPaymentBtn').addEventListener('click', openPaymentModal);
             document.getElementById('qaRecordPayment').addEventListener('click', openPaymentModal);
 
@@ -1379,6 +1406,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                 document.getElementById('pmAmount').value = '';
                 openModal('paymentModal');
             }
+
             document.getElementById('pmSave').addEventListener('click', () => {
                 const unitId = document.getElementById('pmTenant').value;
                 const amount = Number(document.getElementById('pmAmount').value);
@@ -1401,6 +1429,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                 renderTenants();
                 toast(`Payment recorded for Unit ${unitId} ✓`);
             });
+
             document.getElementById('exportCsvBtn').addEventListener('click', () => {
                 const rows = [
                     ['Unit', 'Tenant', 'Amount (PHP)', 'Status', 'Date received']
@@ -1421,7 +1450,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                 toast('Your rent list has been downloaded ✓');
             });
 
-            // ---------------- Maintenance (dropdown-based, no drag) ----------------
+            // ---------------- Maintenance ----------------
             const statusLabel = {
                 new: 'Not started',
                 progress: 'In progress',
@@ -1436,26 +1465,24 @@ $regAmenities = is_array($landlordProperty->amenities)
                 };
                 const sorted = [...maintenance].sort((a, b) => order[a.status] - order[b.status]);
                 document.getElementById('maintList').innerHTML = sorted.length ? sorted.map(m => `
-      <div class="maint-row">
-        <span class="pri pri-${m.priority}">${m.priority==='high'?'Very urgent':m.priority==='med'?'Somewhat urgent':'Not urgent'}</span>
-        <div class="maint-desc">
-          <h4>${m.desc}</h4>
-          <div class="sub">Unit ${m.unit} · ${m.reportedBy==='landlord' ? '🧑‍💼 Reported by you' : '🏠 Reported by tenant'}</div>
-        </div>
-        <select class="status-select" data-id="${m.id}">
-          <option value="new" ${m.status==='new'?'selected':''}>Not started</option>
-          <option value="progress" ${m.status==='progress'?'selected':''}>In progress</option>
-          <option value="done" ${m.status==='done'?'selected':''}>Done</option>
-        </select>
-      </div>`).join('') :
+                    <div class="maint-row">
+                        <span class="pri pri-${m.priority}">${m.priority==='high'?'Very urgent':m.priority==='med'?'Somewhat urgent':'Not urgent'}</span>
+                        <div class="maint-desc">
+                            <h4>${m.desc}</h4>
+                            <div class="sub">Unit ${m.unit} · ${m.reportedBy==='landlord' ? '🧑‍💼 Reported by you' : '🏠 Reported by tenant'}</div>
+                        </div>
+                        <select class="status-select" data-id="${m.id}">
+                            <option value="new" ${m.status==='new'?'selected':''}>Not started</option>
+                            <option value="progress" ${m.status==='progress'?'selected':''}>In progress</option>
+                            <option value="done" ${m.status==='done'?'selected':''}>Done</option>
+                        </select>
+                    </div>`).join('') :
                     `<div class="empty-state"><div class="em-title">No repairs reported</div>You're all caught up.</div>`;
 
                 document.querySelectorAll('.status-select').forEach(sel => {
                     sel.addEventListener('change', () => {
                         const item = maintenance.find(m => String(m.id) === sel.dataset.id);
-                        if (item) {
-                            item.status = sel.value;
-                        }
+                        if (item) item.status = sel.value;
                         renderMaintenance();
                         renderStats();
                         toast(`Marked as "${statusLabel[sel.value]}" ✓`);
@@ -1464,21 +1491,23 @@ $regAmenities = is_array($landlordProperty->amenities)
 
                 const open = maintenance.filter(m => m.status !== 'done').slice(0, 3);
                 document.getElementById('overviewMaint').innerHTML = open.length ? open.map(m => `
-      <div class="receipt">
-        <div class="receipt-meta">
-          <div class="who">Unit ${m.unit} · ${m.reportedBy==='landlord' ? 'Reported by you' : 'Reported by tenant'}</div>
-          <div class="what">${m.desc} · ${statusLabel[m.status]}</div>
-        </div>
-        <span class="pri pri-${m.priority}">${m.priority==='high'?'Very urgent':m.priority==='med'?'Somewhat urgent':'Not urgent'}</span>
-      </div>`).join('') :
+                    <div class="receipt">
+                        <div class="receipt-meta">
+                            <div class="who">Unit ${m.unit} · ${m.reportedBy==='landlord' ? 'Reported by you' : 'Reported by tenant'}</div>
+                            <div class="what">${m.desc} · ${statusLabel[m.status]}</div>
+                        </div>
+                        <span class="pri pri-${m.priority}">${m.priority==='high'?'Very urgent':m.priority==='med'?'Somewhat urgent':'Not urgent'}</span>
+                    </div>`).join('') :
                     `<div class="empty-state"><div class="em-title">All caught up</div>No repairs waiting on you.</div>`;
 
                 document.getElementById('maintBadge').textContent = maintenance.filter(m => m.status !== 'done').length;
             }
+
             document.getElementById('newRequestBtn').addEventListener('click', () => {
                 populateTenantSelects();
                 openModal('maintModal');
             });
+
             document.getElementById('mmSave').addEventListener('click', () => {
                 const unit = document.getElementById('mmUnit').value;
                 const desc = document.getElementById('mmDesc').value.trim();
@@ -1505,14 +1534,15 @@ $regAmenities = is_array($landlordProperty->amenities)
             // ---------------- Notices ----------------
             function renderNotices() {
                 document.getElementById('noticesList').innerHTML = notices.length ? notices.map(n => `
-      <div class="receipt">
-        <div class="receipt-meta">
-          <div class="who">${n.subject}</div>
-          <div class="what">To ${n.to} · ${n.date}</div>
-        </div>
-      </div>`).join('') :
+                    <div class="receipt">
+                        <div class="receipt-meta">
+                            <div class="who">${n.subject}</div>
+                            <div class="what">To ${n.to} · ${n.date}</div>
+                        </div>
+                    </div>`).join('') :
                     `<div class="empty-state"><div class="em-title">No messages yet</div>Write one when a reminder is due.</div>`;
             }
+
             document.getElementById('newNoticeBtn').addEventListener('click', () => {
                 populateTenantSelects();
                 openModal('noticeModal');
@@ -1521,6 +1551,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                 populateTenantSelects();
                 openModal('noticeModal');
             });
+
             document.getElementById('ntSave').addEventListener('click', () => {
                 const unitId = document.getElementById('ntTenant').value;
                 const subject = document.getElementById('ntSubject').value.trim();
@@ -1555,12 +1586,12 @@ $regAmenities = is_array($landlordProperty->amenities)
                     `<option value="${u.id}">${u.id}${u.tenant?' — '+u.tenant:' — vacant'}</option>`).join('');
             }
 
-            // ---------------- Sidebar registered-property card: minimize / expand ----------------
+            // Sidebar registered-property toggle
             (function setupSidebarRegToggle() {
                 const toggleBtn = document.getElementById('sidebarRegToggle');
                 const body = document.getElementById('sidebarRegBody');
                 const icon = document.getElementById('sidebarRegToggleIcon');
-                if (!toggleBtn || !body) return; // card only exists when a landlordProperty was passed in
+                if (!toggleBtn || !body) return;
 
                 const STORAGE_KEY = 'sidebarRegPanelCollapsed';
 
@@ -1571,9 +1602,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                     toggleBtn.title = collapsed ? 'Expand' : 'Minimize';
                     try {
                         localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
-                    } catch (e) {
-                        /* private-browsing or storage disabled — just skip remembering it */
-                    }
+                    } catch (e) {}
                 }
 
                 let startCollapsed = false;
@@ -1588,13 +1617,13 @@ $regAmenities = is_array($landlordProperty->amenities)
                 });
             })();
 
-            // ---------------- Registered-property panel: minimize / expand ----------------
+            // Registered-property panel toggle
             (function setupRegPanelToggle() {
                 const toggleBtn = document.getElementById('regPanelToggle');
                 const body = document.getElementById('regPanelBody');
                 const icon = document.getElementById('regPanelToggleIcon');
                 const label = document.getElementById('regPanelToggleLabel');
-                if (!toggleBtn || !body) return; // panel only exists when a landlordProperty was passed in
+                if (!toggleBtn || !body) return;
 
                 const STORAGE_KEY = 'regPanelCollapsed';
 
@@ -1605,9 +1634,7 @@ $regAmenities = is_array($landlordProperty->amenities)
                     toggleBtn.setAttribute('aria-expanded', String(!collapsed));
                     try {
                         localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
-                    } catch (e) {
-                        /* private-browsing or storage disabled — just skip remembering it */
-                    }
+                    } catch (e) {}
                 }
 
                 let startCollapsed = false;
@@ -1622,17 +1649,15 @@ $regAmenities = is_array($landlordProperty->amenities)
                 });
             })();
 
-            // ---------------- Registered-property panel: "Show more" for a long description ----------------
+            // House rules toggle
             (function setupHouseRulesToggle() {
                 const toggleBtn = document.getElementById('houseRulesToggle');
                 const text = document.getElementById('houseRulesText');
-                if (!toggleBtn || !text) return; // only exists when house_rules was filled in
+                if (!toggleBtn || !text) return;
 
                 let expanded = false;
 
                 function refreshVisibility() {
-                    // If the whole panel is minimized, text.scrollHeight reads as 0 —
-                    // skip the check in that case rather than wrongly hiding the button.
                     const panelBody = document.getElementById('regPanelBody');
                     const panelHidden = panelBody && panelBody.style.display === 'none';
                     if (panelHidden || expanded) return;
@@ -1645,8 +1670,6 @@ $regAmenities = is_array($landlordProperty->amenities)
                     toggleBtn.textContent = expanded ? 'Show less' : 'Show more';
                 });
 
-                // Check once after layout settles, and again whenever the outer panel
-                // gets expanded (its content isn't measurable while hidden).
                 setTimeout(refreshVisibility, 0);
                 const outerToggle = document.getElementById('regPanelToggle');
                 if (outerToggle) outerToggle.addEventListener('click', () => setTimeout(refreshVisibility, 0));
